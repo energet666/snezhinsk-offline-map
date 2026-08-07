@@ -10,6 +10,7 @@ const map = L.map('map', {
   zoomControl: false,
 });
 L.control.zoom({ position: 'bottomright' }).addTo(map);
+map.attributionControl.setPrefix(false);
 
 // ---------- Base layer: satellite (local Esri tiles) ----------
 const satelliteLayer = L.tileLayer('tiles/{z}/{x}/{y}.png', {
