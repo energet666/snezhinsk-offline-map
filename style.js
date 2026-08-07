@@ -64,7 +64,8 @@ function poiColor(props) {
 }
 
 function poiLabel(props) {
-  return props.amenity || props.shop || props.office || '';
+  return props.amenity || props.shop || props.office ||
+    props.healthcare || props.craft || props.tourism || props.leisure || '';
 }
 
 const PARKING_STYLE = {

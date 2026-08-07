@@ -61,7 +61,7 @@ function buildOrgIndex(data) {
   const orgIndex = new Map();
   for (const f of data.poi.features) {
     const p = f.properties;
-    if (!p.name && !p.amenity && !p.shop && !p.office) continue;
+    if (!p.name && !p.amenity && !p.shop && !p.office && !p.healthcare && !p.craft && !p.tourism && !p.leisure) continue;
     const [x, y] = f.geometry.coordinates;
     for (const b of buildingBoxes) {
       if (x < b.minX || x > b.maxX || y < b.minY || y > b.maxY) continue;
