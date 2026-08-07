@@ -272,7 +272,7 @@ function addStreetLabels(zoom, bounds, budget) {
       count++;
       const icon = L.divIcon({
         className: 'map-label map-label-street',
-        html: `<span style="transform: rotate(${angle.toFixed(1)}deg)">${escapeHtml(street.name)}</span>`,
+        html: `<span class="label-inner" style="transform: translate(-50%,-50%) rotate(${angle.toFixed(1)}deg)">${escapeHtml(street.name)}</span>`,
         iconSize: null,
       });
       L.marker(latlng, { icon, interactive: false }).addTo(labelsGroup);
@@ -298,7 +298,7 @@ function renderLabels() {
     if (count >= MAX_LABELS_RENDERED) break;
     count++;
     const className = 'map-label map-label-' + lp.kind;
-    const icon = L.divIcon({ className, html: escapeHtml(lp.text), iconSize: null });
+    const icon = L.divIcon({ className, html: `<span class="label-inner">${escapeHtml(lp.text)}</span>`, iconSize: null });
     L.marker(lp.latlng, { icon, interactive: false }).addTo(labelsGroup);
   }
 }
