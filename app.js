@@ -24,6 +24,15 @@ const satelliteLayer = L.tileLayer('tiles/{z}/{x}/{y}.png', {
 const mapLayerGroup = L.layerGroup();
 const landusePane = mapLayerGroup;
 
+// Buildings live outside the swappable base layer so their click popups
+// keep working in satellite mode too — just invisible there.
+let satelliteActive = false;
+function buildingStyle() {
+  return satelliteActive
+    ? { stroke: false, fill: true, fillOpacity: 0 }
+    : { color: '#c4b9a8', weight: 1, fillColor: '#d9d0c4', fillOpacity: 0.95 };
+}
+
 let dataStore = {}; // holds loaded geojson for search index
 
 function fetchJSON(path) {
@@ -124,9 +133,9 @@ function buildMapLayer(data, orgIndex) {
   });
   roadsCenter.addTo(mapLayerGroup);
 
-  // Buildings
+  // Buildings — not added to mapLayerGroup, see buildingStyle() above
   const buildings = L.geoJSON(data.buildings, {
-    style: () => ({ color: '#c4b9a8', weight: 1, fillColor: '#d9d0c4', fillOpacity: 0.95 }),
+    style: buildingStyle,
     onEachFeature: (f, layer) => {
       const p = f.properties;
       const orgs = orgIndex.get(p.id) || [];
@@ -152,7 +161,7 @@ function buildMapLayer(data, orgIndex) {
       layer.bindPopup(html);
     },
   });
-  buildings.addTo(mapLayerGroup);
+  return buildings;
 }
 
 // ---------- Parking overlay (separate checkbox) ----------
@@ -404,12 +413,13 @@ Promise.all([
   const data = { roads, buildings, poi, landuse, water, railway, addr_nodes, parking };
   dataStore = data;
   const orgIndex = buildOrgIndex(data);
-  buildMapLayer(data, orgIndex);
+  const buildingsLayer = buildMapLayer(data, orgIndex);
   buildLabelIndex(data);
   buildSearchIndex(data);
   const parkingLayer = buildParkingLayer(data);
 
   mapLayerGroup.addTo(map);
+  buildingsLayer.addTo(map);
   labelsGroup.addTo(map);
   renderLabels();
 
@@ -422,6 +432,11 @@ Promise.all([
     'Парковки': parkingLayer,
   };
   L.control.layers(baseLayers, overlays, { position: 'topright', collapsed: false }).addTo(map);
+
+  map.on('baselayerchange', (e) => {
+    satelliteActive = (e.layer === satelliteLayer);
+    buildingsLayer.setStyle(buildingStyle);
+  });
 
   map.on('moveend zoomend', renderLabels);
 
