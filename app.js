@@ -215,7 +215,7 @@ function buildLabelIndex(data) {
     labelPoints.push({
       latlng: c,
       text: f.properties.housenumber,
-      minZoom: 18,
+      minZoom: 17,
       kind: 'housenumber',
     });
   }
@@ -225,7 +225,7 @@ function buildLabelIndex(data) {
     labelPoints.push({
       latlng: L.latLng(c[1], c[0]),
       text: f.properties.housenumber,
-      minZoom: 18,
+      minZoom: 17,
       kind: 'housenumber',
     });
   }
