@@ -173,15 +173,8 @@ function buildParkingLayer(data) {
 
 // ---------- Labels overlay (works on top of both base modes, like Google hybrid) ----------
 const labelsGroup = L.layerGroup();
-let labelPoints = []; // {latlng, text, minZoom, kind}
-
-function polylineMidpoint(latlngs) {
-  const flat = Array.isArray(latlngs[0]) ? latlngs.flat(Infinity) : latlngs;
-  const pts = Array.isArray(latlngs[0]) ? latlngs : latlngs;
-  const arr = pts;
-  const mid = arr[Math.floor(arr.length / 2)];
-  return mid;
-}
+let labelPoints = []; // {latlng, text, minZoom, kind} - housenumbers only
+let namedStreets = []; // {name, latlngs, bounds} - rendered along the road itself
 
 function polygonCentroid(coords) {
   // coords: [ [ [lon,lat], ... ] ] (outer ring only, simple average)
@@ -194,17 +187,17 @@ function polygonCentroid(coords) {
 
 function buildLabelIndex(data) {
   labelPoints = [];
+  namedStreets = [];
 
-  // Street name labels (roads with a name)
+  // Street name labels — stored as full geometry so they can be drawn
+  // rotated along the road and repeated along long streets.
   for (const f of data.roads.features) {
     if (!f.properties.name) continue;
-    const coords = f.geometry.coordinates;
-    const mid = coords[Math.floor(coords.length / 2)];
-    labelPoints.push({
-      latlng: L.latLng(mid[1], mid[0]),
-      text: f.properties.name,
-      minZoom: 15,
-      kind: 'street',
+    const latlngs = f.geometry.coordinates.map(c => L.latLng(c[1], c[0]));
+    namedStreets.push({
+      name: f.properties.name,
+      latlngs,
+      bounds: L.latLngBounds(latlngs),
     });
   }
 
@@ -235,12 +228,69 @@ function buildLabelIndex(data) {
 }
 
 const MAX_LABELS_RENDERED = 400;
+const STREET_LABEL_MIN_ZOOM = 15;
+const STREET_LABEL_STEP_PX = 260; // spacing between repeated labels along a long street
+const STREET_LABEL_MIN_LEN_PX = 40; // skip streets too short to fit a label
+
+function addStreetLabels(zoom, bounds, budget) {
+  let count = 0;
+  for (const street of namedStreets) {
+    if (count >= budget) break;
+    if (!bounds.intersects(street.bounds)) continue;
+
+    const pts = street.latlngs.map(ll => map.project(ll, zoom));
+    const cum = [0];
+    for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+    const total = cum[cum.length - 1];
+    if (total < STREET_LABEL_MIN_LEN_PX) continue;
+
+    const positions = [];
+    if (total < STREET_LABEL_STEP_PX) {
+      positions.push(total / 2);
+    } else {
+      const n = Math.floor(total / STREET_LABEL_STEP_PX);
+      const offset = (total - n * STREET_LABEL_STEP_PX) / 2 + STREET_LABEL_STEP_PX / 2;
+      for (let i = 0; i < n; i++) positions.push(offset + i * STREET_LABEL_STEP_PX);
+    }
+
+    for (const t of positions) {
+      if (count >= budget) break;
+      let idx = 1;
+      while (idx < cum.length - 1 && cum[idx] < t) idx++;
+      const p0 = pts[idx - 1], p1 = pts[idx];
+      const segLen = cum[idx] - cum[idx - 1] || 1;
+      const frac = (t - cum[idx - 1]) / segLen;
+      const x = p0.x + (p1.x - p0.x) * frac;
+      const y = p0.y + (p1.y - p0.y) * frac;
+      const latlng = map.unproject(L.point(x, y), zoom);
+      if (!bounds.contains(latlng)) continue;
+
+      let angle = Math.atan2(p1.y - p0.y, p1.x - p0.x) * 180 / Math.PI;
+      if (angle > 90) angle -= 180;
+      if (angle < -90) angle += 180;
+
+      count++;
+      const icon = L.divIcon({
+        className: 'map-label map-label-street',
+        html: `<span style="transform: rotate(${angle.toFixed(1)}deg)">${escapeHtml(street.name)}</span>`,
+        iconSize: null,
+      });
+      L.marker(latlng, { icon, interactive: false }).addTo(labelsGroup);
+    }
+  }
+  return count;
+}
 
 function renderLabels() {
   labelsGroup.clearLayers();
   const zoom = map.getZoom();
   const bounds = map.getBounds();
   let count = 0;
+
+  if (zoom >= STREET_LABEL_MIN_ZOOM) {
+    count += addStreetLabels(zoom, bounds, MAX_LABELS_RENDERED);
+  }
+
   for (const lp of labelPoints) {
     if (zoom < lp.minZoom) continue;
     if (!bounds.contains(lp.latlng)) continue;

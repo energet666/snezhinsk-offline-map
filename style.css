@@ -76,6 +76,9 @@ html, body {
   font-size: 12px;
   color: #5c4a1a;
 }
+.map-label-street span {
+  display: inline-block;
+}
 .map-label-housenumber {
   font-size: 10px;
   color: #555;
