@@ -1,0 +1,110 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+#map {
+  height: 100%;
+  width: 100%;
+  background: #eef0f1;
+}
+
+#search-box {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 320px;
+  z-index: 1000;
+}
+
+#search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  font-size: 15px;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  outline: none;
+}
+
+#search-results {
+  display: none;
+  background: white;
+  margin-top: 4px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.search-result {
+  padding: 8px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+}
+.search-result:last-child { border-bottom: none; }
+.search-result:hover { background: #f2f6fc; }
+.sr-label { font-size: 14px; color: #222; }
+.sr-sub { font-size: 12px; color: #888; }
+
+#loading {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  z-index: 2000;
+  font-size: 14px;
+}
+
+.map-label {
+  color: #3c3c3c;
+  font-size: 11px;
+  white-space: nowrap;
+  text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff, 0 0 3px #fff;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+.map-label-street {
+  font-weight: 600;
+  font-size: 12px;
+  color: #5c4a1a;
+}
+.map-label-housenumber {
+  font-size: 10px;
+  color: #555;
+  background: rgba(255,255,255,0.75);
+  padding: 0 3px;
+  border-radius: 3px;
+}
+.map-label-poi {
+  pointer-events: auto;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #222;
+  font-size: 11px;
+}
+.poi-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid white;
+  box-shadow: 0 0 1px rgba(0,0,0,0.5);
+  margin-right: 3px;
+  flex-shrink: 0;
+}
+.poi-text {
+  text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff, 0 0 3px #fff;
+}
+
+.leaflet-control-layers {
+  border-radius: 8px !important;
+}
