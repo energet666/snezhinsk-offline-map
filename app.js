@@ -139,8 +139,13 @@ function buildMapLayer(data, orgIndex) {
         html += '<div class="building-orgs">' + orgs.map(o => {
           const cat = poiLabel(o);
           const title = o.name || cat || 'организация';
+          let details = '';
+          if (o.phone) details += `<div class="org-detail">☎ ${escapeHtml(o.phone)}</div>`;
+          if (o.opening_hours) details += `<div class="org-detail">🕑 ${escapeHtml(o.opening_hours)}</div>`;
+          if (o.website) details += `<div class="org-detail"><a href="${escapeHtml(o.website)}" target="_blank" rel="noopener">${escapeHtml(o.website)}</a></div>`;
           return `<div class="org-item"><b>${escapeHtml(title)}</b>` +
             (o.name && cat ? ` <span class="org-cat">(${escapeHtml(cat)})</span>` : '') +
+            details +
             '</div>';
         }).join('') + '</div>';
       }

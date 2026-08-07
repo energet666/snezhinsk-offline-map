@@ -100,11 +100,21 @@ html, body {
 }
 .org-item {
   font-size: 12px;
-  margin-bottom: 2px;
+  margin-bottom: 6px;
+}
+.org-item:last-child {
+  margin-bottom: 0;
 }
 .org-cat {
   color: #888;
   font-weight: normal;
+}
+.org-detail {
+  color: #555;
+  font-size: 11px;
+}
+.org-detail a {
+  color: #3a6fd8;
 }
 
 .parking-marker {
