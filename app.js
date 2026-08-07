@@ -33,7 +33,49 @@ function fetchJSON(path) {
   });
 }
 
-function buildMapLayer(data) {
+// ---------- Organizations-in-building index (point-in-polygon) ----------
+function pointInRing(x, y, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    const intersect = ((yi > y) !== (yj > y)) &&
+      (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function buildOrgIndex(data) {
+  const buildingBoxes = data.buildings.features.map(f => {
+    const ring = f.geometry.coordinates[0];
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const [x, y] of ring) {
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+    }
+    return { id: f.properties.id, ring, minX, minY, maxX, maxY };
+  });
+  const orgIndex = new Map();
+  for (const f of data.poi.features) {
+    const p = f.properties;
+    if (!p.name && !p.amenity && !p.shop && !p.office) continue;
+    const [x, y] = f.geometry.coordinates;
+    for (const b of buildingBoxes) {
+      if (x < b.minX || x > b.maxX || y < b.minY || y > b.maxY) continue;
+      if (pointInRing(x, y, b.ring)) {
+        if (!orgIndex.has(b.id)) orgIndex.set(b.id, []);
+        orgIndex.get(b.id).push(p);
+        break;
+      }
+    }
+  }
+  return orgIndex;
+}
+
+function buildMapLayer(data, orgIndex) {
   // Landuse
   const landuse = L.geoJSON(data.landuse, {
     style: f => ({
@@ -87,13 +129,46 @@ function buildMapLayer(data) {
     style: () => ({ color: '#c4b9a8', weight: 1, fillColor: '#d9d0c4', fillOpacity: 0.95 }),
     onEachFeature: (f, layer) => {
       const p = f.properties;
-      if (p.name || p.housenumber) {
-        const addr = [p.street, p.housenumber].filter(Boolean).join(', ');
-        layer.bindTooltip([p.name, addr].filter(Boolean).join(' — '), { sticky: true });
+      const orgs = orgIndex.get(p.id) || [];
+      const addr = [p.street, p.housenumber].filter(Boolean).join(', ');
+      if (!p.name && !addr && !orgs.length) return;
+      let html = '';
+      if (p.name) html += `<b>${escapeHtml(p.name)}</b><br>`;
+      if (addr) html += `${escapeHtml(addr)}<br>`;
+      if (orgs.length) {
+        html += '<div class="building-orgs">' + orgs.map(o => {
+          const cat = poiLabel(o);
+          const title = o.name || cat || 'организация';
+          return `<div class="org-item"><b>${escapeHtml(title)}</b>` +
+            (o.name && cat ? ` <span class="org-cat">(${escapeHtml(cat)})</span>` : '') +
+            '</div>';
+        }).join('') + '</div>';
       }
+      layer.bindPopup(html);
     },
   });
   buildings.addTo(mapLayerGroup);
+}
+
+// ---------- Parking overlay (separate checkbox) ----------
+function buildParkingLayer(data) {
+  const layer = L.geoJSON(data.parking, {
+    style: () => ({ color: PARKING_STYLE.border, weight: 1, fillColor: PARKING_STYLE.fill, fillOpacity: 0.85 }),
+    pointToLayer: (f, latlng) => L.marker(latlng, {
+      icon: L.divIcon({
+        className: 'parking-marker',
+        html: 'P',
+        iconSize: [18, 18],
+      }),
+    }),
+    onEachFeature: (f, layer) => {
+      const p = f.properties;
+      const addr = [p.street, p.housenumber].filter(Boolean).join(', ');
+      const title = p.name ? escapeHtml(p.name) : 'Парковка';
+      layer.bindPopup(title + (addr ? '<br>' + escapeHtml(addr) : ''));
+    },
+  });
+  return layer;
 }
 
 // ---------- Labels overlay (works on top of both base modes, like Google hybrid) ----------
@@ -155,20 +230,8 @@ function buildLabelIndex(data) {
     });
   }
 
-  // POI markers
-  for (const f of data.poi.features) {
-    const p = f.properties;
-    if (!p.name && !p.amenity && !p.shop && !p.office) continue;
-    const c = f.geometry.coordinates;
-    labelPoints.push({
-      latlng: L.latLng(c[1], c[0]),
-      text: p.name || poiLabel(p),
-      minZoom: 16,
-      kind: 'poi',
-      color: poiColor(p),
-      props: p,
-    });
-  }
+  // Note: organizations are intentionally not shown as always-on labels —
+  // they surface via a click on their building (see buildMapLayer) or search.
 }
 
 const MAX_LABELS_RENDERED = 400;
@@ -184,21 +247,9 @@ function renderLabels() {
     if (!lp.text) continue;
     if (count >= MAX_LABELS_RENDERED) break;
     count++;
-    let className = 'map-label map-label-' + lp.kind;
-    let html;
-    if (lp.kind === 'poi') {
-      html = `<span class="poi-dot" style="background:${lp.color}"></span><span class="poi-text">${escapeHtml(lp.text)}</span>`;
-    } else {
-      html = escapeHtml(lp.text);
-    }
-    const icon = L.divIcon({ className, html, iconSize: null });
-    const marker = L.marker(lp.latlng, { icon, interactive: lp.kind === 'poi' });
-    if (lp.kind === 'poi' && lp.props) {
-      const p = lp.props;
-      const addr = [p.street, p.housenumber].filter(Boolean).join(', ');
-      marker.bindPopup(`<b>${escapeHtml(p.name || poiLabel(p))}</b><br>${escapeHtml(poiLabel(p))}${addr ? '<br>' + escapeHtml(addr) : ''}`);
-    }
-    marker.addTo(labelsGroup);
+    const className = 'map-label map-label-' + lp.kind;
+    const icon = L.divIcon({ className, html: escapeHtml(lp.text), iconSize: null });
+    L.marker(lp.latlng, { icon, interactive: false }).addTo(labelsGroup);
   }
 }
 
@@ -293,12 +344,15 @@ Promise.all([
   fetchJSON('data/water.geojson'),
   fetchJSON('data/railway.geojson'),
   fetchJSON('data/addr_nodes.geojson'),
-]).then(([roads, buildings, poi, landuse, water, railway, addr_nodes]) => {
-  const data = { roads, buildings, poi, landuse, water, railway, addr_nodes };
+  fetchJSON('data/parking.geojson'),
+]).then(([roads, buildings, poi, landuse, water, railway, addr_nodes, parking]) => {
+  const data = { roads, buildings, poi, landuse, water, railway, addr_nodes, parking };
   dataStore = data;
-  buildMapLayer(data);
+  const orgIndex = buildOrgIndex(data);
+  buildMapLayer(data, orgIndex);
   buildLabelIndex(data);
   buildSearchIndex(data);
+  const parkingLayer = buildParkingLayer(data);
 
   mapLayerGroup.addTo(map);
   labelsGroup.addTo(map);
@@ -310,6 +364,7 @@ Promise.all([
   };
   const overlays = {
     'Названия и объекты': labelsGroup,
+    'Парковки': parkingLayer,
   };
   L.control.layers(baseLayers, overlays, { position: 'topright', collapsed: false }).addTo(map);
 

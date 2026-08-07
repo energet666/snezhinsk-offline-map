@@ -83,26 +83,29 @@ html, body {
   padding: 0 3px;
   border-radius: 3px;
 }
-.map-label-poi {
-  pointer-events: auto;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  color: #222;
+.building-orgs {
+  margin-top: 4px;
+  border-top: 1px solid #eee;
+  padding-top: 4px;
+}
+.org-item {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+.org-cat {
+  color: #888;
+  font-weight: normal;
+}
+
+.parking-marker {
+  background: #2f6fb0;
+  color: #fff;
+  font-weight: 700;
   font-size: 11px;
-}
-.poi-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: 1px solid white;
-  box-shadow: 0 0 1px rgba(0,0,0,0.5);
-  margin-right: 3px;
-  flex-shrink: 0;
-}
-.poi-text {
-  text-shadow: 0 0 2px #fff, 0 0 2px #fff, 0 0 3px #fff, 0 0 3px #fff;
+  text-align: center;
+  line-height: 18px;
+  border-radius: 4px;
+  box-shadow: 0 0 2px rgba(0,0,0,0.6);
 }
 
 .leaflet-control-layers {

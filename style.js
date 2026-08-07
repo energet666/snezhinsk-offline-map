@@ -66,3 +66,9 @@ function poiColor(props) {
 function poiLabel(props) {
   return props.amenity || props.shop || props.office || '';
 }
+
+const PARKING_STYLE = {
+  fill: '#c9d6e3',
+  border: '#8fa3ba',
+  markerBg: '#2f6fb0',
+};
