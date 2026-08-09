@@ -1,9 +1,11 @@
 #!/bin/sh
 # Запуск оффлайн-карты Снежинска. Работает без интернета.
-# Использование: ./run.sh [порт]   (по умолчанию 8765)
+# Использование: ./run.sh [порт]   (по умолчанию 5173, как у Vite)
 set -e
 DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$DIR"
+
+PORT="${1:-${PORT:-5173}}"
 
 PYTHON=""
 for candidate in python3 python; do
@@ -18,4 +20,4 @@ if [ -z "$PYTHON" ]; then
     exit 1
 fi
 
-exec "$PYTHON" server.py "$@"
+exec "$PYTHON" server.py "$PORT"
