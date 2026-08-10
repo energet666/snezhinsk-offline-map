@@ -40,14 +40,35 @@ const LANDUSE_COLORS = {
   leisure_park: '#cdebb0',
   leisure_garden: '#cdebb0',
   leisure_pitch: '#aee0a8',
+  leisure_track: '#c7e8ae',
   leisure_sports_centre: '#aee0c8',
   leisure_stadium: '#aee0c8',
+  leisure_ice_rink: '#cfe8f5',
+  // Playground fill deliberately far from the building fill (#d9d0c4) in
+  // hue, not just lightness — the two used to be near-indistinguishable
+  // inside courtyards, making building outlines vanish into the ground.
+  leisure_playground: '#ffe2b3',
   natural_wetland: '#c7ddd4',
+  recreation_ground: '#e3f4c1',
+  village_green: '#cdebb0',
+  allotments: '#dfe6c8',
+  garages: '#d6cddb',
+  construction: '#cbc9d6',
+  quarry: '#cbbfa8',
+  landfill: '#c9bfae',
+  railway: '#d8d3d6',
+  greenfield: '#e2f0d9',
+  logging: '#dbe3c9',
 };
+
+// Fallback for any landuse value not covered above — kept far lighter than
+// the building fill (#d9d0c4) so an unstyled polygon never reads as a
+// building outline dissolving into the ground.
+const LANDUSE_DEFAULT = '#eef0ef';
 
 function landuseColor(feature) {
   const lu = feature.properties.landuse;
-  return LANDUSE_COLORS[lu] || '#e6e6e6';
+  return LANDUSE_COLORS[lu] || LANDUSE_DEFAULT;
 }
 
 const POI_CATEGORY_COLORS = {
@@ -64,8 +85,26 @@ function poiColor(props) {
 }
 
 function poiLabel(props) {
+  if (props.amenity === 'atm') return 'банкомат';
   return props.amenity || props.shop || props.office ||
     props.healthcare || props.craft || props.tourism || props.leisure || '';
+}
+
+// ATMs in OSM rarely carry a name — the bank is only recoverable from the
+// website domain, so map the domains actually present in data/poi.geojson.
+const BANK_BY_DOMAIN = {
+  'chelindbank.ru': 'Челиндбанк',
+  'sberbank.ru': 'Сбербанк',
+  'snbank.ru': 'банк «Снежинский»',
+  'vtb.ru': 'ВТБ',
+};
+
+function bankFromWebsite(website) {
+  if (!website) return '';
+  for (const domain in BANK_BY_DOMAIN) {
+    if (website.includes(domain)) return BANK_BY_DOMAIN[domain];
+  }
+  return '';
 }
 
 const PARKING_STYLE = {

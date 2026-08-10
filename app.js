@@ -22,7 +22,15 @@ const satelliteLayer = L.tileLayer('tiles/{z}/{x}/{y}.png', {
 
 // ---------- Base layer: vector "map" style ----------
 const mapLayerGroup = L.layerGroup();
-const landusePane = mapLayerGroup;
+
+// Landuse/roads/water get their own pane, pinned below the default
+// overlayPane (where buildings live) via z-index. Without this, toggling
+// Карта -> Спутник -> Карта removes and re-adds mapLayerGroup, and Leaflet's
+// SVG renderer re-appends its paths at the end of the shared <svg> — after
+// the buildings paths, which never left the DOM — so the landuse polygons
+// end up stacked on top of buildings instead of under them.
+map.createPane('landusePane');
+map.getPane('landusePane').style.zIndex = 350;
 
 // Buildings live outside the swappable base layer so their click popups
 // keep working in satellite mode too — just invisible there.
@@ -87,6 +95,7 @@ function buildOrgIndex(data) {
 function buildMapLayer(data, orgIndex) {
   // Landuse
   const landuse = L.geoJSON(data.landuse, {
+    pane: 'landusePane',
     style: f => ({
       color: 'none',
       weight: 0,
@@ -98,18 +107,21 @@ function buildMapLayer(data, orgIndex) {
 
   // Water
   const water = L.geoJSON(data.water, {
+    pane: 'landusePane',
     style: () => ({ color: '#a3ccdb', weight: 1, fillColor: '#aad3df', fillOpacity: 1 }),
   });
   water.addTo(mapLayerGroup);
 
   // Railway
   const railway = L.geoJSON(data.railway, {
+    pane: 'landusePane',
     style: () => ({ color: '#8a8a8a', weight: 2, dashArray: '1,6' }),
   });
   railway.addTo(mapLayerGroup);
 
   // Roads - casing pass then center pass for nicer look
   const roadsCasing = L.geoJSON(data.roads, {
+    pane: 'landusePane',
     style: f => {
       const s = roadStyle(f);
       if (!s.casing) return { opacity: 0 };
@@ -119,6 +131,7 @@ function buildMapLayer(data, orgIndex) {
   roadsCasing.addTo(mapLayerGroup);
 
   const roadsCenter = L.geoJSON(data.roads, {
+    pane: 'landusePane',
     style: f => {
       const s = roadStyle(f);
       return {
@@ -147,13 +160,15 @@ function buildMapLayer(data, orgIndex) {
       if (orgs.length) {
         html += '<div class="building-orgs">' + orgs.map(o => {
           const cat = poiLabel(o);
+          const bank = o.amenity === 'atm' ? bankFromWebsite(o.website) : '';
           const title = o.name || cat || 'организация';
+          const subtitle = o.name ? cat : bank;
           let details = '';
           if (o.phone) details += `<div class="org-detail">☎ ${escapeHtml(o.phone)}</div>`;
           if (o.opening_hours) details += `<div class="org-detail">🕑 ${escapeHtml(o.opening_hours)}</div>`;
           if (o.website) details += `<div class="org-detail"><a href="${escapeHtml(o.website)}" target="_blank" rel="noopener">${escapeHtml(o.website)}</a></div>`;
           return `<div class="org-item"><b>${escapeHtml(title)}</b>` +
-            (o.name && cat ? ` <span class="org-cat">(${escapeHtml(cat)})</span>` : '') +
+            (subtitle ? ` <span class="org-cat">(${escapeHtml(subtitle)})</span>` : '') +
             details +
             '</div>';
         }).join('') + '</div>';
@@ -352,7 +367,9 @@ function buildSearchIndex(data) {
 }
 
 function normalize(s) {
-  return s.toLowerCase().replace(/ё/g, 'е');
+  // Strip punctuation (commas in "Улица, 39", periods in abbreviations)
+  // so "Ломинского 39" matches a label written as "Ломинского, 39".
+  return s.toLowerCase().replace(/ё/g, 'е').replace(/[.,]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function doSearch(query) {
