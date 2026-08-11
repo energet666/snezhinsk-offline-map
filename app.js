@@ -13,12 +13,23 @@ L.control.zoom({ position: 'bottomright' }).addTo(map);
 map.attributionControl.setPrefix(false);
 
 // ---------- Base layer: satellite (local Esri tiles) ----------
-const satelliteLayer = L.tileLayer('tiles/{z}/{x}/{y}.png', {
+const SATELLITE_TILE_OPTS = {
   maxZoom: MAX_ZOOM,
   maxNativeZoom: MAX_NATIVE_SAT_ZOOM,
   attribution: 'Esri, Maxar, Earthstar Geographics',
   errorTileUrl: 'lib/images/marker-shadow.png',
-});
+};
+const satelliteLayer = L.tileLayer('tiles/{z}/{x}/{y}.png', SATELLITE_TILE_OPTS);
+// A second, independent tile layer for "Гибрид" (same local tiles, served
+// from the browser cache) — reusing satelliteLayer itself as a child of the
+// hybrid layer group would make map.hasLayer(satelliteLayer) true whenever
+// either base layer is active. Leaflet's layers control re-syncs ALL of its
+// inputs on every click inside the control, not just the one clicked, so
+// toggling e.g. "Названия и объекты" while in Гибрид would see the
+// "Спутник" radio unchecked but hasLayer(satelliteLayer) true, read that as
+// a mismatch, and remove the (shared) tile layer — the imagery would vanish
+// even though Гибрид was still selected.
+const satelliteLayerHybrid = L.tileLayer('tiles/{z}/{x}/{y}.png', SATELLITE_TILE_OPTS);
 
 // ---------- Base layer: vector "map" style ----------
 const mapLayerGroup = L.layerGroup();
@@ -32,8 +43,10 @@ const mapLayerGroup = L.layerGroup();
 map.createPane('landusePane');
 map.getPane('landusePane').style.zIndex = 350;
 
+const HYBRID_ROAD_OPACITY = 0.55;
+
 // Buildings live outside the swappable base layer so their click popups
-// keep working in satellite mode too — just invisible there.
+// keep working in satellite/hybrid mode too — just invisible there.
 let satelliteActive = false;
 function isGarage(feature) {
   const b = feature && feature.properties.building;
@@ -126,37 +139,38 @@ function buildMapLayer(data, orgIndex) {
   });
   railway.addTo(mapLayerGroup);
 
-  // Roads - casing pass then center pass for nicer look. Kept in their own
-  // group added directly to the map (not to mapLayerGroup, which is a base
-  // layer swapped out entirely in satellite mode) so roads stay visible as
-  // a hybrid overlay on top of the satellite imagery too.
-  const roadsGroup = L.layerGroup();
-
-  const roadsCasing = L.geoJSON(data.roads, {
-    pane: 'landusePane',
-    style: f => {
-      const s = roadStyle(f);
-      if (!s.casing) return { opacity: 0 };
-      return { color: s.casing, weight: s.weight + 1.6, opacity: 1, lineCap: 'round', lineJoin: 'round' };
-    },
-  });
-  roadsCasing.addTo(roadsGroup);
-
-  const roadsCenter = L.geoJSON(data.roads, {
-    pane: 'landusePane',
-    style: f => {
-      const s = roadStyle(f);
-      return {
-        color: s.color,
-        weight: s.weight,
-        opacity: 1,
-        lineCap: 'round',
-        lineJoin: 'round',
-        dashArray: s.dashed ? '4,4' : null,
-      };
-    },
-  });
-  roadsCenter.addTo(roadsGroup);
+  // Roads - casing pass then center pass for nicer look. Built twice: full
+  // opacity for the "Карта" base layer, and a dimmer copy (see
+  // HYBRID_ROAD_OPACITY) for the separate "Гибрид" base layer, which lays
+  // roads over the satellite photo instead of replacing it.
+  function buildRoadLayers(opacity) {
+    const group = L.layerGroup();
+    L.geoJSON(data.roads, {
+      pane: 'landusePane',
+      style: f => {
+        const s = roadStyle(f);
+        if (!s.casing) return { opacity: 0 };
+        return { color: s.casing, weight: s.weight + 1.6, opacity, lineCap: 'round', lineJoin: 'round' };
+      },
+    }).addTo(group);
+    L.geoJSON(data.roads, {
+      pane: 'landusePane',
+      style: f => {
+        const s = roadStyle(f);
+        return {
+          color: s.color,
+          weight: s.weight,
+          opacity,
+          lineCap: 'round',
+          lineJoin: 'round',
+          dashArray: s.dashed ? '4,4' : null,
+        };
+      },
+    }).addTo(group);
+    return group;
+  }
+  buildRoadLayers(1).addTo(mapLayerGroup);
+  const hybridRoadsGroup = buildRoadLayers(HYBRID_ROAD_OPACITY);
 
   // Buildings — not added to mapLayerGroup, see buildingStyle() above
   const buildings = L.geoJSON(data.buildings, {
@@ -191,7 +205,7 @@ function buildMapLayer(data, orgIndex) {
       layer.bindPopup(html);
     },
   });
-  return { buildings, roadsGroup };
+  return { buildings, hybridRoadsGroup };
 }
 
 // ---------- Parking overlay (separate checkbox) ----------
@@ -323,8 +337,7 @@ function buildLabelIndex(data, matchedPoiIds) {
     });
   }
 
-  // Admin/social building labels (schools, kindergartens, clinics, …) —
-  // shown from a lower zoom than house numbers since they're landmarks.
+  // Admin/social building labels (schools, kindergartens, clinics, …).
   // Most carry no `name` in OSM, so fall back to a generic type label.
   for (const f of data.buildings.features) {
     const p = f.properties;
@@ -333,7 +346,7 @@ function buildLabelIndex(data, matchedPoiIds) {
     labelPoints.push({
       latlng: polygonCentroid(f.geometry.coordinates),
       text: p.name || generic,
-      minZoom: 15,
+      minZoom: ADMIN_LABEL_MIN_ZOOM,
       kind: 'admin',
     });
   }
@@ -350,7 +363,7 @@ function buildLabelIndex(data, matchedPoiIds) {
     labelPoints.push({
       latlng: L.latLng(c[1], c[0]),
       text: p.name || generic,
-      minZoom: 15,
+      minZoom: ADMIN_LABEL_MIN_ZOOM,
       kind: 'admin',
     });
   }
@@ -371,6 +384,7 @@ function buildLabelIndex(data, matchedPoiIds) {
 }
 
 const MAX_LABELS_RENDERED = 400;
+const ADMIN_LABEL_MIN_ZOOM = 17;
 const STREET_LABEL_MIN_ZOOM = 15;
 const STREET_LABEL_STEP_PX = 260; // spacing between repeated labels along a long street
 const STREET_LABEL_MIN_LEN_PX = 40; // skip streets too short to fit a label
@@ -566,20 +580,22 @@ Promise.all([
   const data = { roads, buildings, poi, landuse, water, railway, addr_nodes, parking };
   dataStore = data;
   const { orgIndex, matchedPoiIds } = buildOrgIndex(data);
-  const { buildings: buildingsLayer, roadsGroup } = buildMapLayer(data, orgIndex);
+  const { buildings: buildingsLayer, hybridRoadsGroup } = buildMapLayer(data, orgIndex);
   buildLabelIndex(data, matchedPoiIds);
   buildSearchIndex(data);
   const parkingLayer = buildParkingLayer(data);
 
   mapLayerGroup.addTo(map);
   buildingsLayer.addTo(map);
-  roadsGroup.addTo(map);
   labelsGroup.addTo(map);
   renderLabels();
+
+  const hybridLayer = L.layerGroup([satelliteLayerHybrid, hybridRoadsGroup]);
 
   const baseLayers = {
     'Карта': mapLayerGroup,
     'Спутник': satelliteLayer,
+    'Гибрид': hybridLayer,
   };
   const overlays = {
     'Названия и объекты': labelsGroup,
@@ -588,8 +604,25 @@ Promise.all([
   L.control.layers(baseLayers, overlays, { position: 'topright', collapsed: false }).addTo(map);
 
   map.on('baselayerchange', (e) => {
-    satelliteActive = (e.layer === satelliteLayer);
+    satelliteActive = (e.layer === satelliteLayer || e.layer === hybridLayer);
     buildingsLayer.setStyle(buildingStyle);
+
+    // Pure "Спутник" stays a clean photo with nothing overlaid — labels/
+    // housenumbers/admin names belong to "Карта" and "Гибрид" instead.
+    const pureSatellite = (e.layer === satelliteLayer);
+    if (pureSatellite && map.hasLayer(labelsGroup)) map.removeLayer(labelsGroup);
+    else if (!pureSatellite && !map.hasLayer(labelsGroup)) map.addLayer(labelsGroup);
+
+    // Leaflet's layers control doesn't reliably resync its checkbox when a
+    // layer is toggled outside of a click on that checkbox — fix it up so
+    // it doesn't show "checked" for an overlay that isn't actually on the
+    // map, and disable it in pure satellite so it can't be forced back on.
+    document.querySelectorAll('.leaflet-control-layers-overlays label').forEach(label => {
+      if (label.textContent.trim() !== 'Названия и объекты') return;
+      const input = label.querySelector('input');
+      input.checked = map.hasLayer(labelsGroup);
+      input.disabled = pureSatellite;
+    });
   });
 
   map.on('moveend zoomend', renderLabels);
