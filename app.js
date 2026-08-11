@@ -35,9 +35,14 @@ map.getPane('landusePane').style.zIndex = 350;
 // Buildings live outside the swappable base layer so their click popups
 // keep working in satellite mode too — just invisible there.
 let satelliteActive = false;
-function buildingStyle() {
-  return satelliteActive
-    ? { stroke: false, fill: true, fillOpacity: 0 }
+function isGarage(feature) {
+  const b = feature && feature.properties.building;
+  return b === 'garage' || b === 'garages';
+}
+function buildingStyle(feature) {
+  if (satelliteActive) return { stroke: false, fill: true, fillOpacity: 0 };
+  return isGarage(feature)
+    ? { color: '#a99bb8', weight: 1, fillColor: '#d6cddb', fillOpacity: 0.95 }
     : { color: '#c4b9a8', weight: 1, fillColor: '#d9d0c4', fillOpacity: 0.95 };
 }
 
@@ -76,6 +81,7 @@ function buildOrgIndex(data) {
     return { id: f.properties.id, ring, minX, minY, maxX, maxY };
   });
   const orgIndex = new Map();
+  const matchedPoiIds = new Set();
   for (const f of data.poi.features) {
     const p = f.properties;
     if (!p.name && !p.amenity && !p.shop && !p.office && !p.healthcare && !p.craft && !p.tourism && !p.leisure) continue;
@@ -85,11 +91,12 @@ function buildOrgIndex(data) {
       if (pointInRing(x, y, b.ring)) {
         if (!orgIndex.has(b.id)) orgIndex.set(b.id, []);
         orgIndex.get(b.id).push(p);
+        matchedPoiIds.add(p.id);
         break;
       }
     }
   }
-  return orgIndex;
+  return { orgIndex, matchedPoiIds };
 }
 
 function buildMapLayer(data, orgIndex) {
@@ -119,7 +126,12 @@ function buildMapLayer(data, orgIndex) {
   });
   railway.addTo(mapLayerGroup);
 
-  // Roads - casing pass then center pass for nicer look
+  // Roads - casing pass then center pass for nicer look. Kept in their own
+  // group added directly to the map (not to mapLayerGroup, which is a base
+  // layer swapped out entirely in satellite mode) so roads stay visible as
+  // a hybrid overlay on top of the satellite imagery too.
+  const roadsGroup = L.layerGroup();
+
   const roadsCasing = L.geoJSON(data.roads, {
     pane: 'landusePane',
     style: f => {
@@ -128,7 +140,7 @@ function buildMapLayer(data, orgIndex) {
       return { color: s.casing, weight: s.weight + 1.6, opacity: 1, lineCap: 'round', lineJoin: 'round' };
     },
   });
-  roadsCasing.addTo(mapLayerGroup);
+  roadsCasing.addTo(roadsGroup);
 
   const roadsCenter = L.geoJSON(data.roads, {
     pane: 'landusePane',
@@ -144,7 +156,7 @@ function buildMapLayer(data, orgIndex) {
       };
     },
   });
-  roadsCenter.addTo(mapLayerGroup);
+  roadsCenter.addTo(roadsGroup);
 
   // Buildings — not added to mapLayerGroup, see buildingStyle() above
   const buildings = L.geoJSON(data.buildings, {
@@ -153,7 +165,10 @@ function buildMapLayer(data, orgIndex) {
       const p = f.properties;
       const orgs = orgIndex.get(p.id) || [];
       const addr = [p.street, p.housenumber].filter(Boolean).join(', ');
-      if (!p.name && !addr && !orgs.length) return;
+      if (!p.name && !addr && !orgs.length) {
+        if (isGarage(f)) layer.bindPopup('Гараж');
+        return;
+      }
       let html = '';
       if (p.name) html += `<b>${escapeHtml(p.name)}</b><br>`;
       if (addr) html += `${escapeHtml(addr)}<br>`;
@@ -176,7 +191,7 @@ function buildMapLayer(data, orgIndex) {
       layer.bindPopup(html);
     },
   });
-  return buildings;
+  return { buildings, roadsGroup };
 }
 
 // ---------- Parking overlay (separate checkbox) ----------
@@ -205,16 +220,82 @@ const labelsGroup = L.layerGroup();
 let labelPoints = []; // {latlng, text, minZoom, kind} - housenumbers only
 let namedStreets = []; // {name, latlngs, bounds} - rendered along the road itself
 
-function polygonCentroid(coords) {
-  // coords: [ [ [lon,lat], ... ] ] (outer ring only, simple average)
-  const ring = coords[0];
-  let x = 0, y = 0;
-  for (const c of ring) { x += c[0]; y += c[1]; }
-  const n = ring.length;
-  return L.latLng(y / n, x / n);
+function distToRing(x, y, ring) {
+  let best = Infinity;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const x1 = ring[j][0], y1 = ring[j][1], x2 = ring[i][0], y2 = ring[i][1];
+    const dx = x2 - x1, dy = y2 - y1;
+    const len2 = dx * dx + dy * dy;
+    let t = len2 ? ((x - x1) * dx + (y - y1) * dy) / len2 : 0;
+    t = Math.max(0, Math.min(1, t));
+    const px = x1 + t * dx, py = y1 + t * dy;
+    const d = Math.hypot(x - px, y - py);
+    if (d < best) best = d;
+  }
+  return best;
 }
 
-function buildLabelIndex(data) {
+// Pole of inaccessibility: coarse-to-fine grid search for the point inside
+// the ring farthest from any edge. Used as a fallback for concave (e.g.
+// L-shaped) buildings, where the area centroid can land outside the shape.
+function poleOfInaccessibility(ring, minX, minY, maxX, maxY) {
+  let best = { x: (minX + maxX) / 2, y: (minY + maxY) / 2, d: -Infinity };
+  let cell = Math.max(maxX - minX, maxY - minY) / 8 || 1e-6;
+  let cx0 = minX, cy0 = minY, cx1 = maxX, cy1 = maxY;
+  for (let pass = 0; pass < 6; pass++) {
+    for (let gx = cx0; gx <= cx1 + cell / 2; gx += cell) {
+      for (let gy = cy0; gy <= cy1 + cell / 2; gy += cell) {
+        if (!pointInRing(gx, gy, ring)) continue;
+        const d = distToRing(gx, gy, ring);
+        if (d > best.d) best = { x: gx, y: gy, d };
+      }
+    }
+    cx0 = best.x - cell; cx1 = best.x + cell;
+    cy0 = best.y - cell; cy1 = best.y + cell;
+    cell /= 4;
+  }
+  return best;
+}
+
+function polygonCentroid(coords) {
+  // coords: [ [ [lon,lat], ... ], ...holes ] — outer ring only, matching
+  // how the rest of the app (pointInRing/buildOrgIndex) treats buildings.
+  const ring = coords[0];
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let area = 0, cx = 0, cy = 0;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [x1, y1] = ring[j], [x2, y2] = ring[i];
+    const cross = x1 * y2 - x2 * y1;
+    area += cross;
+    cx += (x1 + x2) * cross;
+    cy += (y1 + y2) * cross;
+    if (x2 < minX) minX = x2;
+    if (x2 > maxX) maxX = x2;
+    if (y2 < minY) minY = y2;
+    if (y2 > maxY) maxY = y2;
+  }
+  area *= 0.5;
+
+  let x, y;
+  if (Math.abs(area) < 1e-14) {
+    // Degenerate (zero-area) ring — fall back to a vertex average.
+    x = ring.reduce((s, c) => s + c[0], 0) / ring.length;
+    y = ring.reduce((s, c) => s + c[1], 0) / ring.length;
+  } else {
+    x = cx / (6 * area);
+    y = cy / (6 * area);
+  }
+
+  // The area centroid of a concave (e.g. L-shaped) polygon can fall
+  // outside the shape entirely — pull it back inside via a grid search.
+  if (!pointInRing(x, y, ring)) {
+    const pole = poleOfInaccessibility(ring, minX, minY, maxX, maxY);
+    x = pole.x; y = pole.y;
+  }
+  return L.latLng(y, x);
+}
+
+function buildLabelIndex(data, matchedPoiIds) {
   labelPoints = [];
   namedStreets = [];
 
@@ -241,6 +322,39 @@ function buildLabelIndex(data) {
       kind: 'housenumber',
     });
   }
+
+  // Admin/social building labels (schools, kindergartens, clinics, …) —
+  // shown from a lower zoom than house numbers since they're landmarks.
+  // Most carry no `name` in OSM, so fall back to a generic type label.
+  for (const f of data.buildings.features) {
+    const p = f.properties;
+    const generic = adminBuildingLabel(p);
+    if (!generic) continue;
+    labelPoints.push({
+      latlng: polygonCentroid(f.geometry.coordinates),
+      text: p.name || generic,
+      minZoom: 15,
+      kind: 'admin',
+    });
+  }
+
+  // Same admin labeling for standalone POIs (e.g. школа 135, tagged as a
+  // point with no enclosing building at all in OSM) — skip ones already
+  // surfaced via a building popup (buildOrgIndex) to avoid double-labeling.
+  for (const f of data.poi.features) {
+    const p = f.properties;
+    if (matchedPoiIds.has(p.id)) continue;
+    const generic = adminBuildingLabel(p);
+    if (!generic) continue;
+    const c = f.geometry.coordinates;
+    labelPoints.push({
+      latlng: L.latLng(c[1], c[0]),
+      text: p.name || generic,
+      minZoom: 15,
+      kind: 'admin',
+    });
+  }
+
   for (const f of data.addr_nodes.features) {
     if (!f.properties.housenumber) continue;
     const c = f.geometry.coordinates;
@@ -263,48 +377,70 @@ const STREET_LABEL_MIN_LEN_PX = 40; // skip streets too short to fit a label
 
 function addStreetLabels(zoom, bounds, budget) {
   let count = 0;
+
+  // OSM splits long streets into many short ways (one per block/intersection),
+  // and namedStreets has one entry per way. Placing labels independently per
+  // way — each getting its own STREET_LABEL_STEP_PX spacing — makes a street
+  // name repeat far more often than intended wherever it's cut into short
+  // segments. Group by name first and track already-placed label positions
+  // across the whole street, so spacing is enforced street-wide, not per-way.
+  const byName = new Map();
   for (const street of namedStreets) {
-    if (count >= budget) break;
     if (!bounds.intersects(street.bounds)) continue;
+    if (!byName.has(street.name)) byName.set(street.name, []);
+    byName.get(street.name).push(street);
+  }
 
-    const pts = street.latlngs.map(ll => map.project(ll, zoom));
-    const cum = [0];
-    for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
-    const total = cum[cum.length - 1];
-    if (total < STREET_LABEL_MIN_LEN_PX) continue;
+  for (const segments of byName.values()) {
+    if (count >= budget) break;
+    const placed = [];
 
-    const positions = [];
-    if (total < STREET_LABEL_STEP_PX) {
-      positions.push(total / 2);
-    } else {
-      const n = Math.floor(total / STREET_LABEL_STEP_PX);
-      const offset = (total - n * STREET_LABEL_STEP_PX) / 2 + STREET_LABEL_STEP_PX / 2;
-      for (let i = 0; i < n; i++) positions.push(offset + i * STREET_LABEL_STEP_PX);
-    }
-
-    for (const t of positions) {
+    for (const street of segments) {
       if (count >= budget) break;
-      let idx = 1;
-      while (idx < cum.length - 1 && cum[idx] < t) idx++;
-      const p0 = pts[idx - 1], p1 = pts[idx];
-      const segLen = cum[idx] - cum[idx - 1] || 1;
-      const frac = (t - cum[idx - 1]) / segLen;
-      const x = p0.x + (p1.x - p0.x) * frac;
-      const y = p0.y + (p1.y - p0.y) * frac;
-      const latlng = map.unproject(L.point(x, y), zoom);
-      if (!bounds.contains(latlng)) continue;
 
-      let angle = Math.atan2(p1.y - p0.y, p1.x - p0.x) * 180 / Math.PI;
-      if (angle > 90) angle -= 180;
-      if (angle < -90) angle += 180;
+      const pts = street.latlngs.map(ll => map.project(ll, zoom));
+      const cum = [0];
+      for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+      const total = cum[cum.length - 1];
+      if (total < STREET_LABEL_MIN_LEN_PX) continue;
 
-      count++;
-      const icon = L.divIcon({
-        className: 'map-label map-label-street',
-        html: `<span class="label-inner" style="transform: translate(-50%,-50%) rotate(${angle.toFixed(1)}deg)">${escapeHtml(street.name)}</span>`,
-        iconSize: null,
-      });
-      L.marker(latlng, { icon, interactive: false }).addTo(labelsGroup);
+      const positions = [];
+      if (total < STREET_LABEL_STEP_PX) {
+        positions.push(total / 2);
+      } else {
+        const n = Math.floor(total / STREET_LABEL_STEP_PX);
+        const offset = (total - n * STREET_LABEL_STEP_PX) / 2 + STREET_LABEL_STEP_PX / 2;
+        for (let i = 0; i < n; i++) positions.push(offset + i * STREET_LABEL_STEP_PX);
+      }
+
+      for (const t of positions) {
+        if (count >= budget) break;
+        let idx = 1;
+        while (idx < cum.length - 1 && cum[idx] < t) idx++;
+        const p0 = pts[idx - 1], p1 = pts[idx];
+        const segLen = cum[idx] - cum[idx - 1] || 1;
+        const frac = (t - cum[idx - 1]) / segLen;
+        const x = p0.x + (p1.x - p0.x) * frac;
+        const y = p0.y + (p1.y - p0.y) * frac;
+        const latlng = map.unproject(L.point(x, y), zoom);
+        if (!bounds.contains(latlng)) continue;
+
+        const pt = L.point(x, y);
+        if (placed.some(p => p.distanceTo(pt) < STREET_LABEL_STEP_PX)) continue;
+        placed.push(pt);
+
+        let angle = Math.atan2(p1.y - p0.y, p1.x - p0.x) * 180 / Math.PI;
+        if (angle > 90) angle -= 180;
+        if (angle < -90) angle += 180;
+
+        count++;
+        const icon = L.divIcon({
+          className: 'map-label map-label-street',
+          html: `<span class="label-inner" style="transform: translate(-50%,-50%) rotate(${angle.toFixed(1)}deg)">${escapeHtml(street.name)}</span>`,
+          iconSize: null,
+        });
+        L.marker(latlng, { icon, interactive: false }).addTo(labelsGroup);
+      }
     }
   }
   return count;
@@ -429,14 +565,15 @@ Promise.all([
 ]).then(([roads, buildings, poi, landuse, water, railway, addr_nodes, parking]) => {
   const data = { roads, buildings, poi, landuse, water, railway, addr_nodes, parking };
   dataStore = data;
-  const orgIndex = buildOrgIndex(data);
-  const buildingsLayer = buildMapLayer(data, orgIndex);
-  buildLabelIndex(data);
+  const { orgIndex, matchedPoiIds } = buildOrgIndex(data);
+  const { buildings: buildingsLayer, roadsGroup } = buildMapLayer(data, orgIndex);
+  buildLabelIndex(data, matchedPoiIds);
   buildSearchIndex(data);
   const parkingLayer = buildParkingLayer(data);
 
   mapLayerGroup.addTo(map);
   buildingsLayer.addTo(map);
+  roadsGroup.addTo(map);
   labelsGroup.addTo(map);
   renderLabels();
 

@@ -93,6 +93,16 @@ html, body {
   padding: 0 3px;
   border-radius: 3px;
 }
+.map-label-admin {
+  font-weight: 600;
+  font-size: 11px;
+  color: #1f5c3c;
+}
+.map-label-admin .label-inner {
+  background: rgba(255,255,255,0.85);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
 .building-orgs {
   margin-top: 4px;
   border-top: 1px solid #eee;

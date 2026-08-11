@@ -107,6 +107,39 @@ function bankFromWebsite(website) {
   return '';
 }
 
+// Admin/social building types worth labeling on the map even when OSM has
+// no `name` for the specific building — e.g. most schools/kindergartens in
+// this dataset carry only building=school|kindergarten with an empty name.
+// `amenity` (more specific) wins over `building` when both are present.
+const ADMIN_BUILDING_LABELS = {
+  school: 'Школа',
+  kindergarten: 'Детский сад',
+  government: 'Администрация',
+  public: 'Общественное здание',
+  public_building: 'Общественное здание',
+  hospital: 'Больница',
+  clinic: 'Поликлиника',
+  dentist: 'Стоматология',
+  veterinary: 'Ветклиника',
+  townhall: 'Администрация',
+  courthouse: 'Суд',
+  police: 'Полиция',
+  fire_station: 'Пожарная часть',
+  library: 'Библиотека',
+  cinema: 'Кинотеатр',
+  university: 'Университет',
+  college: 'Колледж',
+  community_centre: 'Дом культуры',
+  social_facility: 'Соцучреждение',
+  mortuary: 'Дом прощаний',
+  place_of_worship: 'Храм',
+  church: 'Храм',
+};
+
+function adminBuildingLabel(props) {
+  return ADMIN_BUILDING_LABELS[props.amenity] || ADMIN_BUILDING_LABELS[props.building] || '';
+}
+
 const PARKING_STYLE = {
   fill: '#c9d6e3',
   border: '#8fa3ba',
