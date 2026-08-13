@@ -368,6 +368,18 @@ function buildLabelIndex(data, matchedPoiIds) {
     });
   }
 
+  // Stadiums with a resolvable name/sport label (see stadiumLabel).
+  for (const f of data.landuse.features) {
+    const text = stadiumLabel(f.properties);
+    if (!text) continue;
+    labelPoints.push({
+      latlng: polygonCentroid(f.geometry.coordinates),
+      text,
+      minZoom: ADMIN_LABEL_MIN_ZOOM,
+      kind: 'admin',
+    });
+  }
+
   for (const f of data.addr_nodes.features) {
     if (!f.properties.housenumber) continue;
     const c = f.geometry.coordinates;

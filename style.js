@@ -140,6 +140,19 @@ function adminBuildingLabel(props) {
   return ADMIN_BUILDING_LABELS[props.amenity] || ADMIN_BUILDING_LABELS[props.building] || '';
 }
 
+// Most leisure=stadium ways in OSM have no `name`; for those, `sport` at
+// least gives a generic Russian label instead of nothing.
+const STADIUM_SPORT_LABELS = {
+  hockey: 'Хоккейная коробка',
+  skiing: 'Лыжная трасса',
+  soccer: 'Стадион',
+};
+
+function stadiumLabel(props) {
+  if (props.landuse !== 'leisure_stadium') return '';
+  return props.name || STADIUM_SPORT_LABELS[props.sport] || '';
+}
+
 const PARKING_STYLE = {
   fill: '#c9d6e3',
   border: '#8fa3ba',
