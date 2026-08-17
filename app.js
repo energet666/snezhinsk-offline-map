@@ -3,14 +3,29 @@ const INITIAL_ZOOM = 14;
 const MAX_ZOOM = 19;
 const MAX_NATIVE_SAT_ZOOM = 17;
 
+// Restore the last-viewed map position/zoom so a page refresh lands exactly
+// where the user left off, instead of always resetting to CITY_CENTER.
+function getSavedView() {
+  try {
+    const v = JSON.parse(localStorage.getItem('mapView'));
+    if (v && Array.isArray(v.center) && v.center.length === 2 && typeof v.zoom === 'number') return v;
+  } catch (e) { /* malformed/absent — fall back to the default view */ }
+  return null;
+}
+const savedView = getSavedView();
+
 const map = L.map('map', {
-  center: CITY_CENTER,
-  zoom: INITIAL_ZOOM,
+  center: savedView ? savedView.center : CITY_CENTER,
+  zoom: savedView ? savedView.zoom : INITIAL_ZOOM,
   maxZoom: MAX_ZOOM,
   zoomControl: false,
 });
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 map.attributionControl.setPrefix(false);
+map.on('moveend', () => {
+  const c = map.getCenter();
+  localStorage.setItem('mapView', JSON.stringify({ center: [c.lat, c.lng], zoom: map.getZoom() }));
+});
 
 // ---------- Base layer: satellite (local Esri tiles) ----------
 const SATELLITE_TILE_OPTS = {
