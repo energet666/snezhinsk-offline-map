@@ -85,6 +85,9 @@ function poiColor(props) {
 }
 
 function poiLabel(props) {
+  // `category` (2GIS, already human-readable Russian) takes priority;
+  // the amenity/shop/... fallback is only for any leftover OSM-shaped data.
+  if (props.category) return props.category;
   if (props.amenity === 'atm') return 'банкомат';
   return props.amenity || props.shop || props.office ||
     props.healthcare || props.craft || props.tourism || props.leisure || '';
@@ -136,8 +139,16 @@ const ADMIN_BUILDING_LABELS = {
   church: 'Храм',
 };
 
+// Same idea, keyed on the 2GIS `category` text instead of an OSM tag value
+// — for standalone POIs (no enclosing building) sourced from the new data.
+const ADMIN_CATEGORY_LABELS = {
+  'Школы': 'Школа',
+  'Детские сады': 'Детский сад',
+};
+
 function adminBuildingLabel(props) {
-  return ADMIN_BUILDING_LABELS[props.amenity] || ADMIN_BUILDING_LABELS[props.building] || '';
+  return ADMIN_BUILDING_LABELS[props.amenity] || ADMIN_BUILDING_LABELS[props.building] ||
+    ADMIN_CATEGORY_LABELS[props.category] || '';
 }
 
 // Most leisure=stadium ways in OSM have no `name`; for those, `sport` at
