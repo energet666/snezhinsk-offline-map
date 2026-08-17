@@ -115,9 +115,18 @@ html, body {
 .org-item:last-child {
   margin-bottom: 0;
 }
+.org-item-clickable .org-name {
+  cursor: pointer;
+}
+.org-item-clickable .org-name:hover {
+  color: #3a6fd8;
+}
 .org-cat {
   color: #888;
   font-weight: normal;
+}
+.org-detail-panel {
+  margin-top: 2px;
 }
 .org-detail {
   color: #555;

@@ -196,13 +196,29 @@ function buildMapLayer(data, orgIndex) {
           if (o.phone) details += `<div class="org-detail">☎ ${escapeHtml(o.phone)}</div>`;
           if (o.opening_hours) details += `<div class="org-detail">🕑 ${escapeHtml(o.opening_hours)}</div>`;
           if (o.website) details += `<div class="org-detail"><a href="${escapeHtml(o.website)}" target="_blank" rel="noopener">${escapeHtml(o.website)}</a></div>`;
-          return `<div class="org-item"><b>${escapeHtml(title)}</b>` +
+          const clickable = details ? ' org-item-clickable' : '';
+          return `<div class="org-item${clickable}">` +
+            `<div class="org-name"><b>${escapeHtml(title)}</b>` +
             (subtitle ? ` <span class="org-cat">(${escapeHtml(subtitle)})</span>` : '') +
-            details +
+            '</div>' +
+            (details ? `<div class="org-detail-panel" hidden>${details}</div>` : '') +
             '</div>';
         }).join('') + '</div>';
       }
       layer.bindPopup(html);
+      // Details (phone/hours/website) start hidden — only the org name list
+      // shows by default; clicking a name reveals that org's details.
+      layer.on('popupopen', () => {
+        const el = layer.getPopup().getElement();
+        if (!el || el.dataset.orgsWired) return;
+        el.dataset.orgsWired = '1';
+        el.addEventListener('click', (e) => {
+          const item = e.target.closest('.org-item-clickable');
+          if (!item) return;
+          const panel = item.querySelector('.org-detail-panel');
+          if (panel) panel.hidden = !panel.hidden;
+        });
+      });
     },
   });
   return { buildings, hybridRoadsGroup };
