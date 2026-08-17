@@ -194,7 +194,10 @@ function buildMapLayer(data, orgIndex) {
           const subtitle = o.name ? cat : bank;
           let details = '';
           if (o.phone) details += `<div class="org-detail">☎ ${escapeHtml(o.phone)}</div>`;
-          if (o.opening_hours) details += `<div class="org-detail">🕑 ${escapeHtml(o.opening_hours)}</div>`;
+          if (o.opening_hours) {
+            const days = o.opening_hours.split('; ').map(d => `<div>${escapeHtml(d)}</div>`).join('');
+            details += `<div class="org-detail org-hours">🕑<div class="org-hours-days">${days}</div></div>`;
+          }
           if (o.website) details += `<div class="org-detail"><a href="${escapeHtml(o.website)}" target="_blank" rel="noopener">${escapeHtml(o.website)}</a></div>`;
           const clickable = details ? ' org-item-clickable' : '';
           return `<div class="org-item${clickable}">` +
