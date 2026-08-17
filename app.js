@@ -635,6 +635,7 @@ Promise.all([
   L.control.layers(baseLayers, overlays, { position: 'topright', collapsed: false }).addTo(map);
 
   map.on('baselayerchange', (e) => {
+    localStorage.setItem('mapMode', e.name);
     satelliteActive = (e.layer === satelliteLayer || e.layer === hybridLayer);
     buildingsLayer.setStyle(buildingStyle);
 
@@ -655,6 +656,19 @@ Promise.all([
       input.disabled = pureSatellite;
     });
   });
+
+  // Restore the last-used base layer (Карта/Спутник/Гибрид) from localStorage.
+  // "Карта" is already active by default, so only act when it differs. Must
+  // run after the baselayerchange handler above is registered, since the
+  // click below triggers that event synchronously.
+  const savedMode = localStorage.getItem('mapMode');
+  if (savedMode && savedMode !== 'Карта' && baseLayers[savedMode]) {
+    document.querySelectorAll('.leaflet-control-layers-base label').forEach(label => {
+      if (label.textContent.trim() !== savedMode) return;
+      const input = label.querySelector('input');
+      if (input) input.click();
+    });
+  }
 
   map.on('moveend zoomend', renderLabels);
 
