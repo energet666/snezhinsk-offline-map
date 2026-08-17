@@ -586,6 +586,7 @@ const searchResults = document.getElementById('search-results');
 
 let currentResults = [];
 let selectedIndex = -1;
+let typedQuery = ''; // what the user actually typed, restored on Escape
 
 function selectResult(r) {
   map.setView(r.latlng, r.zoom);
@@ -594,13 +595,17 @@ function selectResult(r) {
   searchInput.value = r.label;
 }
 
-function setSelected(i) {
+// `fillInput`: keyboard navigation substitutes the highlighted result's
+// label into the search box (like browser address-bar autocomplete);
+// mouse hover only highlights, since hovering isn't an explicit choice.
+function setSelected(i, fillInput) {
   const items = searchResults.querySelectorAll('.search-result');
   items.forEach(el => el.classList.remove('search-result-active'));
   selectedIndex = i;
   if (i >= 0 && i < items.length) {
     items[i].classList.add('search-result-active');
     items[i].scrollIntoView({ block: 'nearest' });
+    if (fillInput) searchInput.value = currentResults[i].label;
   }
 }
 
@@ -610,11 +615,12 @@ function moveSelection(delta) {
   const next = selectedIndex === -1
     ? (delta > 0 ? 0 : len - 1)
     : (selectedIndex + delta + len) % len;
-  setSelected(next);
+  setSelected(next, true);
 }
 
 searchInput.addEventListener('input', () => {
-  currentResults = doSearch(searchInput.value);
+  typedQuery = searchInput.value;
+  currentResults = doSearch(typedQuery);
   selectedIndex = -1;
   searchResults.innerHTML = '';
   if (!currentResults.length) {
@@ -647,6 +653,7 @@ searchInput.addEventListener('keydown', (e) => {
     }
   } else if (e.key === 'Escape') {
     searchResults.style.display = 'none';
+    searchInput.value = typedQuery;
   }
 });
 
