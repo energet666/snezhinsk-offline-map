@@ -584,26 +584,70 @@ function doSearch(query) {
 const searchInput = document.getElementById('search-input');
 const searchResults = document.getElementById('search-results');
 
+let currentResults = [];
+let selectedIndex = -1;
+
+function selectResult(r) {
+  map.setView(r.latlng, r.zoom);
+  L.popup().setLatLng(r.latlng).setContent(escapeHtml(r.label)).openOn(map);
+  searchResults.style.display = 'none';
+  searchInput.value = r.label;
+}
+
+function setSelected(i) {
+  const items = searchResults.querySelectorAll('.search-result');
+  items.forEach(el => el.classList.remove('search-result-active'));
+  selectedIndex = i;
+  if (i >= 0 && i < items.length) {
+    items[i].classList.add('search-result-active');
+    items[i].scrollIntoView({ block: 'nearest' });
+  }
+}
+
+function moveSelection(delta) {
+  const len = currentResults.length;
+  if (!len) return;
+  const next = selectedIndex === -1
+    ? (delta > 0 ? 0 : len - 1)
+    : (selectedIndex + delta + len) % len;
+  setSelected(next);
+}
+
 searchInput.addEventListener('input', () => {
-  const results = doSearch(searchInput.value);
+  currentResults = doSearch(searchInput.value);
+  selectedIndex = -1;
   searchResults.innerHTML = '';
-  if (!results.length) {
+  if (!currentResults.length) {
     searchResults.style.display = 'none';
     return;
   }
-  for (const r of results) {
+  for (const r of currentResults) {
     const div = document.createElement('div');
     div.className = 'search-result';
     div.innerHTML = `<div class="sr-label">${escapeHtml(r.label)}</div>` + (r.sub ? `<div class="sr-sub">${escapeHtml(r.sub)}</div>` : '');
-    div.addEventListener('click', () => {
-      map.setView(r.latlng, r.zoom);
-      L.popup().setLatLng(r.latlng).setContent(escapeHtml(r.label)).openOn(map);
-      searchResults.style.display = 'none';
-      searchInput.value = r.label;
-    });
+    div.addEventListener('mouseenter', () => setSelected(currentResults.indexOf(r)));
+    div.addEventListener('click', () => selectResult(r));
     searchResults.appendChild(div);
   }
   searchResults.style.display = 'block';
+});
+
+searchInput.addEventListener('keydown', (e) => {
+  if (searchResults.style.display === 'none' || !currentResults.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    moveSelection(1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    moveSelection(-1);
+  } else if (e.key === 'Enter') {
+    if (selectedIndex >= 0) {
+      e.preventDefault();
+      selectResult(currentResults[selectedIndex]);
+    }
+  } else if (e.key === 'Escape') {
+    searchResults.style.display = 'none';
+  }
 });
 
 document.addEventListener('click', (e) => {

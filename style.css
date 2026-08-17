@@ -46,7 +46,7 @@ html, body {
   border-bottom: 1px solid #eee;
 }
 .search-result:last-child { border-bottom: none; }
-.search-result:hover { background: #f2f6fc; }
+.search-result:hover, .search-result.search-result-active { background: #f2f6fc; }
 .sr-label { font-size: 14px; color: #222; }
 .sr-sub { font-size: 12px; color: #888; }
 
