@@ -19,6 +19,11 @@ DAY_MAP = [
 ]
 SOCIAL_DOMAINS = ('vk.com', 'ok.ru', 't.me', 'wa.me', 'instagram.', 'facebook.', 'telegram.')
 
+# Monuments/plaques are not organizations: listing them here would put a
+# memorial plaque into the org list of the building it hangs on. They go to
+# data/memorials.geojson (their own map layer) via scripts/build_memorials.py.
+MEMORIAL_CATEGORIES = {'Памятники и скульптуры', 'Памятные доски'}
+
 
 def split_phones(phones):
     tel, web = [], []
@@ -65,7 +70,11 @@ def main():
 
     features = []
     skipped = 0
+    memorials = 0
     for o in orgs:
+        if o.get('category') in MEMORIAL_CATEGORIES:
+            memorials += 1
+            continue
         if not o.get('coordinates'):
             skipped += 1
             continue
@@ -92,7 +101,8 @@ def main():
     out = {'type': 'FeatureCollection', 'features': features}
     with open(DST, 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, separators=(',', ':'))
-    print(f'wrote {len(features)} features to {DST} (skipped {skipped} without coordinates)')
+    print(f'wrote {len(features)} features to {DST} '
+          f'(skipped {skipped} without coordinates, {memorials} memorials -> memorials.geojson)')
 
 
 if __name__ == '__main__':

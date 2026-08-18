@@ -1,0 +1,1412 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "osm_node_737984580",
+    "name": "Вечный огонь",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.7221037,
+     56.0925238
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030076250059575+osm_node_614946293",
+    "name": "Воинам, погибшим в локальных конфликтах",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "Воинам, погибшим в локальных конфликтах",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "2GIS, OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.732487,
+     56.085802
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "osm_node_619354818",
+    "name": "Воину-освободителю",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.7221051,
+     56.0925844
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "osm_node_4798043521",
+    "name": "Гаубица ЗИС 2.",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.7583878,
+     56.0799961
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "osm_node_664470398",
+    "name": "Д. Е. Васильеву",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "Дмитрий Ефимович Васильев",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.7372315,
+     56.0880391
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "osm_node_1329575051",
+    "name": "К. И. Щёлкину",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "Кирилл Иванович Щёлкин",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.7374112,
+     56.0878639
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "osm_node_614946295",
+    "name": "Ленин",
+    "kind": "monument",
+    "artist": "Исаак Давидович Бродский",
+    "inscription": "Ленину В.И.",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.7326787,
+     56.0871657
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "osm_node_639178958",
+    "name": "П. П. Бажову",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.7276795,
+     56.0875348
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143398774+osm_node_4841685024",
+    "name": "Памятник Горнист",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "2GIS, OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.745438,
+     56.081377
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030076250059655+osm_node_935623402",
+    "name": "Памятник Петру Ильичу Чайковскому",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "2GIS, OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.729813,
+     56.084826
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459613",
+    "name": "Памятник Пожарным-героям, погибшим при ликвидации аварии на Чернобыльской атомной электростанции",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.738422,
+     56.080704
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143398770+osm_node_4827704335",
+    "name": "Памятник Полуторка",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "2GIS, OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.73173,
+     56.065355
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030076250059600",
+    "name": "Памятник воинам-пограничникам",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.747834,
+     56.075892
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143467883",
+    "name": "Скульптура Спираль вечности",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.75378,
+     56.082133
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143446784",
+    "name": "Скульптура Спящий Медведь",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.743993,
+     56.084776
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "osm_node_4796920122",
+    "name": "Слава любимой Родине",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.7327622,
+     56.0909072
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077102297895",
+    "name": "Смешарики",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.75534,
+     56.074976
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "osm_node_664470366",
+    "name": "Снежик",
+    "kind": "monument",
+    "artist": "А. В. Чесноков",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.7321554,
+     56.0875587
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "osm_node_4826736121",
+    "name": "Стелла ЗКС \"завод керамин снежинск\"",
+    "kind": "monument",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.7762034,
+     56.0638034
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "osm_node_4874671021",
+    "name": "Дом Феоктистова",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.7430821,
+     56.0844438
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143464007",
+    "name": "Мемориальная доска Бывшему председателю профсоюзной организации РФЯЦ-ВНИИТФ Юрию Васильевичу Берсеневу",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Победы",
+    "housenumber": "21",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.721645,
+     56.086206
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143464019",
+    "name": "Мемориальная доска Николаю Георгиевичу Палкину",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица 40 лет Октября",
+    "housenumber": "7",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.741646,
+     56.086958
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143464017",
+    "name": "Мемориальная доска О присвоении улице имени Владимира Зиновьевича Нечая",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "Нечая улица",
+    "housenumber": "1",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.746815,
+     56.073395
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143464014",
+    "name": "Мемориальная доска Первому директору Детской художественной школы города Снежинска, художнику, искусствоведу Ивану Григорьевичу Антоще�",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Дзержинского",
+    "housenumber": "10",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.740789,
+     56.082827
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143464016",
+    "name": "Мемориальная доска Первому директору Снежинского политехнического техникума Станиславу Алексеевичу Кащенко",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Забабахина",
+    "housenumber": "1",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.743873,
+     56.079795
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "osm_node_745931796",
+    "name": "Мемориальные доски погибших в ВОВ",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "",
+    "housenumber": "",
+    "source": "OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.7228293,
+     56.0924126
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459560",
+    "name": "Памятная доска Борису Михайловичу Беккеру",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Ленина",
+    "housenumber": "26",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.736036,
+     56.086531
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459555",
+    "name": "Памятная доска Валентину Фёдоровичу Куропатенко",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица 40 лет Октября",
+    "housenumber": "3",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.74315,
+     56.084515
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459566",
+    "name": "Памятная доска Василию Николаевичу Никонову",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица 40 лет Октября",
+    "housenumber": "6",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.742161,
+     56.086821
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459624",
+    "name": "Памятная доска Василию Сергеевичу Варюшину",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "Комсомольская улица",
+    "housenumber": "2",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.745516,
+     56.081805
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459563",
+    "name": "Памятная доска Владимиру Зиновьевичу Нечаю",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Васильева",
+    "housenumber": "13",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.737154,
+     56.087415
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459608",
+    "name": "Памятная доска Георгию Павловичу Ломинскому",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Васильева",
+    "housenumber": "13",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.737261,
+     56.087445
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459593",
+    "name": "Памятная доска Герою Советского Союза, почётному гражданину города Снежинска, участнику Великой Отечественной войны, Александру Филипповичу М�",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Феоктистова",
+    "housenumber": "20",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.727648,
+     56.079496
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459600",
+    "name": "Памятная доска Герою Социалистического Труда, лауреату Ленинской и Государственной премий Александру Дмитриевичу Захаренкову",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица 40 лет Октября",
+    "housenumber": "8",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.741087,
+     56.087667
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459559",
+    "name": "Памятная доска Герою Социалистического Труда, лауреату Ленинской и Государственной премий, генерал-лейтенанту авиации Евгению Ивановичу Забабахину",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Гречишникова",
+    "housenumber": "1",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.761319,
+     56.085987
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459562",
+    "name": "Памятная доска Герою Социалистического Труда, лауреату Ленинской и Сталинской премий Владимиру Фёдоровичу Гречишникову",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица 40 лет Октября",
+    "housenumber": "9",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.741024,
+     56.087943
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459597",
+    "name": "Памятная доска Герою Социалистического Труда, лауреату Ленинской премии Борису Васильевичу Литвинову",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Гречишникова",
+    "housenumber": "7",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.763141,
+     56.084936
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143466309",
+    "name": "Памятная доска Дворца пионеров имени В.М. Комарова",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "Комсомольская улица",
+    "housenumber": "2",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.745842,
+     56.081792
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459554+osm_node_5046774322",
+    "name": "Памятная доска Дмитрию Геннадьевичу Новосёлову",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "Мемориальная табличка Герою России Новоселову",
+    "street": "улица Академика Забабахина",
+    "housenumber": "10",
+    "source": "2GIS, OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.747127,
+     56.078063
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459598",
+    "name": "Памятная доска Евгению Николаевичу Аврорину",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица 40 лет Октября",
+    "housenumber": "3",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.743161,
+     56.084596
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143398691+osm_node_4793939524",
+    "name": "Памятная доска Кириллу Ивановичу Щёлкину",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Ленина",
+    "housenumber": "12",
+    "source": "2GIS, OSM"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.739024,
+     56.085141
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459617",
+    "name": "Памятная доска Лауреату Ленинской и Государственной премий Олегу Николаевичу Тиханэ",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица 40 лет Октября",
+    "housenumber": "5",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.742814,
+     56.086172
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459552",
+    "name": "Памятная доска Лауреату Ленинской и Государственной премий Юрию Ароновичу Зысину",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Гречишникова",
+    "housenumber": "5",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.762445,
+     56.085105
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459622",
+    "name": "Памятная доска Лауреату Ленинской премии Александру Васильевичу Бородулину",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Гречишникова",
+    "housenumber": "10",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.763012,
+     56.084629
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459556",
+    "name": "Памятная доска Льву Петровичу Феоктистову",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица 40 лет Октября",
+    "housenumber": "3",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.74291,
+     56.08467
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459601",
+    "name": "Памятная доска Михаилу Петровичу Шумаеву",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица 40 лет Октября",
+    "housenumber": "3",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.74307,
+     56.084664
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459514",
+    "name": "Памятная доска Младшему лейтенанту милиции Андрею Евгеньевичу Волкову",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Феоктистова",
+    "housenumber": "28",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.724726,
+     56.07899
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077016801788",
+    "name": "Памятная доска Первой школы города",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица 40 лет Октября",
+    "housenumber": "7",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.741594,
+     56.08701
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143464021",
+    "name": "Памятная доска Первый дом города",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица 40 лет Октября",
+    "housenumber": "6",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.742516,
+     56.086463
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459619",
+    "name": "Памятная доска Почётному гражданину города Снежинска Алле Александровне Плаховой",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Ленина",
+    "housenumber": "37",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.724691,
+     56.085124
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459606",
+    "name": "Памятная доска Почётному гражданину города Снежинска Валентину Николаевичу Барыкину",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Свердлова",
+    "housenumber": "8",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.733512,
+     56.083612
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459561",
+    "name": "Памятная доска Почётному гражданину города Снежинска Виктору Васильевичу Самойлину",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "проспект Мира",
+    "housenumber": "18",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.752875,
+     56.076482
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459546",
+    "name": "Памятная доска Почётному гражданину города Снежинска Екатерине Алексеевне Феоктистовой",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица 40 лет Октября",
+    "housenumber": "8",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.741579,
+     56.087264
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459550",
+    "name": "Памятная доска Рядовому Александру Владимировичу Злыгостеву",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Забабахина",
+    "housenumber": "1",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.744571,
+     56.079717
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459603",
+    "name": "Памятная доска Рядовому Владимиру Евгеньевичу Котову",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Забабахина",
+    "housenumber": "1",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.743869,
+     56.079763
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459614",
+    "name": "Памятная доска Рядовому Злыгостеву Александру Владимировичу",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "проспект Мира",
+    "housenumber": "13",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.756558,
+     56.079086
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459558",
+    "name": "Памятная доска Сержанту Петру Леонидовичу Медведеву",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Ленина",
+    "housenumber": "38",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.730215,
+     56.086045
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459539",
+    "name": "Памятная доска Старшему лейтенанту Андрею Юрьевичу Костареву",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "Щёлкина проспект",
+    "housenumber": "17",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.720082,
+     56.080667
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459602",
+    "name": "Памятная доска Старшему лейтенанту внутренней службы Ольге Александровне Бельченко",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Васильева",
+    "housenumber": "3",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.738156,
+     56.083664
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143464015",
+    "name": "Памятная доска Т.Н. Шаленному",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "Транспортная улица",
+    "housenumber": "11",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.738639,
+     56.080883
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143408207",
+    "name": "Памятная доска Улицы им. Е.И. Забабахина",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Академика Забабахина",
+    "housenumber": "5",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.747131,
+     56.078879
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459620",
+    "name": "Памятная доска Участнику СВО Алексею Алексеевичу Овчинникову",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Маршала Чуйкова",
+    "housenumber": "32",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.76483,
+     56.075289
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143459557",
+    "name": "Памятная доска кандидату технических наук, директору института Николаю Михайловичу Тарасову",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "Комсомольская улица",
+    "housenumber": "8",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.75278,
+     56.080662
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143408202",
+    "name": "Памятная табличка Улица имени В.И. Чуйкова",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Маршала Чуйкова",
+    "housenumber": "16",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.764568,
+     56.079373
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143408138",
+    "name": "Памятная табличка Улица имени Кирилла Ивановича Щёлкина",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Феоктистова",
+    "housenumber": "42",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.720016,
+     56.079287
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077143408211",
+    "name": "Памятная табличка Улица имени Ф.Э. Дзержинского",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Дзержинского",
+    "housenumber": "26",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.730869,
+     56.083155
+    ]
+   }
+  },
+  {
+   "type": "Feature",
+   "properties": {
+    "id": "2gis_70030077144222871",
+    "name": "Улица имени В.Ф. Гречишникова",
+    "kind": "plaque",
+    "artist": "",
+    "inscription": "",
+    "description": "",
+    "street": "улица Гречишникова",
+    "housenumber": "2",
+    "source": "2GIS"
+   },
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     60.76028,
+     56.085553
+    ]
+   }
+  }
+ ]
+}

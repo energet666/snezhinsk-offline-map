@@ -263,6 +263,54 @@ function buildParkingLayer(data) {
   return layer;
 }
 
+// ---------- Memorials overlay (monuments, sculptures, plaques) ----------
+// Markers are built once and kept, rather than re-created on every move like
+// the labels are: re-creating them would close an open popup as soon as
+// Leaflet pans the map to fit that popup. Zoom filtering is done by adding /
+// removing the whole plaques sub-group instead.
+const memorialsGroup = L.layerGroup();
+const monumentMarkers = L.layerGroup();
+const plaqueMarkers = L.layerGroup();
+
+function buildMemorialsLayer(data) {
+  memorialsGroup.addLayer(monumentMarkers);
+  for (const f of data.memorials.features) {
+    const p = f.properties;
+    const plaque = isPlaque(p);
+    const c = f.geometry.coordinates;
+    const icon = L.divIcon({
+      className: plaque ? 'memorial-marker memorial-marker-plaque' : 'memorial-marker',
+      html: plaque ? '' : '★',
+      iconSize: plaque ? [12, 12] : [18, 18],
+    });
+    const marker = L.marker(L.latLng(c[1], c[0]), { icon, title: p.name });
+
+    const addr = [p.street, p.housenumber].filter(Boolean).join(', ');
+    let html = `<b>${escapeHtml(p.name)}</b><br>` +
+      `<span class="memorial-type">${escapeHtml(memorialTypeLabel(p))}</span>`;
+    if (addr) html += `<br>${escapeHtml(addr)}`;
+    if (p.inscription && p.inscription !== p.name) html += `<br>«${escapeHtml(p.inscription)}»`;
+    if (p.description) html += `<br>${escapeHtml(p.description)}`;
+    if (p.artist) html += `<br>скульптор: ${escapeHtml(p.artist)}`;
+    html += `<div class="memorial-source">источник: ${escapeHtml(p.source)}</div>`;
+    marker.bindPopup(html);
+
+    marker.addTo(plaque ? plaqueMarkers : monumentMarkers);
+  }
+}
+
+// Plaques only from MEMORIAL_PLAQUE_MIN_ZOOM up — at city zoom they'd bury
+// the monuments under a cloud of near-identical dots on the same few streets.
+function syncMemorialZoom() {
+  const showPlaques = map.getZoom() >= MEMORIAL_PLAQUE_MIN_ZOOM;
+  if (showPlaques && !memorialsGroup.hasLayer(plaqueMarkers)) memorialsGroup.addLayer(plaqueMarkers);
+  else if (!showPlaques && memorialsGroup.hasLayer(plaqueMarkers)) memorialsGroup.removeLayer(plaqueMarkers);
+
+  const showMonuments = map.getZoom() >= MEMORIAL_MONUMENT_MIN_ZOOM;
+  if (showMonuments && !memorialsGroup.hasLayer(monumentMarkers)) memorialsGroup.addLayer(monumentMarkers);
+  else if (!showMonuments && memorialsGroup.hasLayer(monumentMarkers)) memorialsGroup.removeLayer(monumentMarkers);
+}
+
 // ---------- Labels overlay (works on top of both base modes, like Google hybrid) ----------
 const labelsGroup = L.layerGroup();
 let labelPoints = []; // {latlng, text, minZoom, kind} - housenumbers only
@@ -414,6 +462,20 @@ function buildLabelIndex(data, matchedPoiIds) {
     });
   }
 
+  // Monument names next to their marker (plaques stay marker-only, see
+  // buildMemorialsLayer — their names are long dedications, not map labels).
+  for (const f of data.memorials.features) {
+    const p = f.properties;
+    if (isPlaque(p)) continue;
+    const c = f.geometry.coordinates;
+    labelPoints.push({
+      latlng: L.latLng(c[1], c[0]),
+      text: memorialLabel(p),
+      minZoom: MEMORIAL_LABEL_MIN_ZOOM,
+      kind: 'memorial',
+    });
+  }
+
   for (const f of data.addr_nodes.features) {
     if (!f.properties.housenumber) continue;
     const c = f.geometry.coordinates;
@@ -516,7 +578,13 @@ function renderLabels() {
     count += addStreetLabels(zoom, bounds, MAX_LABELS_RENDERED);
   }
 
+  // Memorial names belong to the "Памятники" overlay even though they are
+  // drawn by the labels layer — unchecking it has to hide the name too, not
+  // leave a caption floating where the marker used to be.
+  const showMemorials = map.hasLayer(memorialsGroup);
+
   for (const lp of labelPoints) {
+    if (lp.kind === 'memorial' && !showMemorials) continue;
     if (zoom < lp.minZoom) continue;
     if (!bounds.contains(lp.latlng)) continue;
     if (!lp.text) continue;
@@ -560,6 +628,17 @@ function buildSearchIndex(data) {
     const addr = [p.street, p.housenumber].filter(Boolean).join(', ');
     searchIndex.push({ label: p.name, sub: [poiLabel(p), addr].filter(Boolean).join(' · '), latlng: L.latLng(c[1], c[0]), zoom: 18 });
   }
+  for (const f of data.memorials.features) {
+    const p = f.properties;
+    const c = f.geometry.coordinates;
+    const addr = [p.street, p.housenumber].filter(Boolean).join(', ');
+    searchIndex.push({
+      label: p.name,
+      sub: [memorialTypeLabel(p), addr].filter(Boolean).join(' · '),
+      latlng: L.latLng(c[1], c[0]),
+      zoom: 18,
+    });
+  }
 }
 
 function normalize(s) {
@@ -568,17 +647,39 @@ function normalize(s) {
   return s.toLowerCase().replace(/ё/g, 'е').replace(/[.,]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
+// Length of the common prefix two words must share to count as the same word
+// in different grammatical cases ("Ленину" ~ "Ленин", "Щёлкину" ~ "Щёлкин").
+const FUZZY_PREFIX_LEN = 5;
+const MAX_SEARCH_RESULTS = 15;
+
+function wordMatches(token, words) {
+  return words.some(w => w.includes(token) ||
+    (token.length >= FUZZY_PREFIX_LEN && w.length >= FUZZY_PREFIX_LEN &&
+      w.slice(0, FUZZY_PREFIX_LEN) === token.slice(0, FUZZY_PREFIX_LEN)));
+}
+
 function doSearch(query) {
   const q = normalize(query.trim());
   if (!q) return [];
-  const results = [];
+  const qWords = q.split(' ');
+  const exact = [];
+  const fuzzy = [];
   for (const item of searchIndex) {
-    if (normalize(item.label).includes(q) || normalize(item.sub).includes(q)) {
-      results.push(item);
-      if (results.length >= 15) break;
+    const hay = normalize(item.label + ' ' + item.sub);
+    if (hay.includes(q)) {
+      exact.push(item);
+      if (exact.length >= MAX_SEARCH_RESULTS) break; // fuzzy hits can't make the list anyway
+      continue;
+    }
+    // "памятник Ленину" has to find a monument named just "Ленин" whose type
+    // ("Памятник") lives in the subtitle — match word by word instead of as
+    // one string, and tolerate Russian case endings.
+    if (qWords.length > 1 || q.length >= FUZZY_PREFIX_LEN) {
+      const words = hay.split(' ').filter(Boolean);
+      if (qWords.every(t => wordMatches(t, words))) fuzzy.push(item);
     }
   }
-  return results;
+  return exact.concat(fuzzy).slice(0, MAX_SEARCH_RESULTS);
 }
 
 const searchInput = document.getElementById('search-input');
@@ -673,19 +774,23 @@ Promise.all([
   fetchJSON('data/railway.geojson'),
   fetchJSON('data/addr_nodes.geojson'),
   fetchJSON('data/parking.geojson'),
-]).then(([roads, buildings, poi, landuse, water, railway, addr_nodes, parking]) => {
-  const data = { roads, buildings, poi, landuse, water, railway, addr_nodes, parking };
+  fetchJSON('data/memorials.geojson'),
+]).then(([roads, buildings, poi, landuse, water, railway, addr_nodes, parking, memorials]) => {
+  const data = { roads, buildings, poi, landuse, water, railway, addr_nodes, parking, memorials };
   dataStore = data;
   const { orgIndex, matchedPoiIds } = buildOrgIndex(data);
   const { buildings: buildingsLayer, hybridRoadsGroup } = buildMapLayer(data, orgIndex);
   buildLabelIndex(data, matchedPoiIds);
   buildSearchIndex(data);
   const parkingLayer = buildParkingLayer(data);
+  buildMemorialsLayer(data);
 
   mapLayerGroup.addTo(map);
   buildingsLayer.addTo(map);
   labelsGroup.addTo(map);
+  memorialsGroup.addTo(map);
   renderLabels();
+  syncMemorialZoom();
 
   const hybridLayer = L.layerGroup([satelliteLayerHybrid, hybridRoadsGroup]);
 
@@ -696,6 +801,7 @@ Promise.all([
   };
   const overlays = {
     'Названия и объекты': labelsGroup,
+    'Памятники': memorialsGroup,
     'Парковки': parkingLayer,
   };
   L.control.layers(baseLayers, overlays, { position: 'topright', collapsed: false }).addTo(map);
@@ -706,19 +812,24 @@ Promise.all([
     buildingsLayer.setStyle(buildingStyle);
 
     // Pure "Спутник" stays a clean photo with nothing overlaid — labels/
-    // housenumbers/admin names belong to "Карта" and "Гибрид" instead.
+    // housenumbers/admin names/memorials belong to "Карта" and "Гибрид".
+    // ("Парковки" is off by default, so it stays the user's own choice.)
     const pureSatellite = (e.layer === satelliteLayer);
-    if (pureSatellite && map.hasLayer(labelsGroup)) map.removeLayer(labelsGroup);
-    else if (!pureSatellite && !map.hasLayer(labelsGroup)) map.addLayer(labelsGroup);
+    const hiddenInSatellite = { 'Названия и объекты': labelsGroup, 'Памятники': memorialsGroup };
+    for (const group of Object.values(hiddenInSatellite)) {
+      if (pureSatellite && map.hasLayer(group)) map.removeLayer(group);
+      else if (!pureSatellite && !map.hasLayer(group)) map.addLayer(group);
+    }
 
     // Leaflet's layers control doesn't reliably resync its checkbox when a
     // layer is toggled outside of a click on that checkbox — fix it up so
     // it doesn't show "checked" for an overlay that isn't actually on the
     // map, and disable it in pure satellite so it can't be forced back on.
     document.querySelectorAll('.leaflet-control-layers-overlays label').forEach(label => {
-      if (label.textContent.trim() !== 'Названия и объекты') return;
+      const group = hiddenInSatellite[label.textContent.trim()];
+      if (!group) return;
       const input = label.querySelector('input');
-      input.checked = map.hasLayer(labelsGroup);
+      input.checked = map.hasLayer(group);
       input.disabled = pureSatellite;
     });
   });
@@ -737,6 +848,10 @@ Promise.all([
   }
 
   map.on('moveend zoomend', renderLabels);
+  map.on('zoomend', syncMemorialZoom);
+  // Toggling "Памятники" in the layers control has to redraw the labels too
+  // (see the memorial check in renderLabels).
+  map.on('overlayadd overlayremove', renderLabels);
 
   document.getElementById('loading').style.display = 'none';
 }).catch(err => {

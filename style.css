@@ -103,6 +103,44 @@ html, body {
   padding: 1px 4px;
   border-radius: 3px;
 }
+/* Sits under its own marker (translate(-50%,-50%) puts it on the marker's
+   center, the extra 16px pushes the text clear of the 18px star icon). */
+.map-label-memorial {
+  font-weight: 600;
+  font-size: 11px;
+  color: #6b4a1f;
+}
+.map-label-memorial .label-inner {
+  background: rgba(255,255,255,0.85);
+  padding: 1px 4px;
+  border-radius: 3px;
+  transform: translate(-50%, 16px);
+}
+
+.memorial-marker {
+  background: #8a5a2b;
+  color: #fff;
+  font-size: 12px;
+  text-align: center;
+  line-height: 18px;
+  border-radius: 50%;
+  box-shadow: 0 0 2px rgba(0,0,0,0.6);
+}
+.memorial-marker-plaque {
+  background: #a08a6a;
+  line-height: 12px;
+  border-radius: 3px;
+}
+.memorial-type {
+  color: #777;
+  font-size: 11px;
+}
+.memorial-source {
+  color: #999;
+  font-size: 10px;
+  margin-top: 4px;
+}
+
 .building-orgs {
   margin-top: 4px;
   border-top: 1px solid #eee;

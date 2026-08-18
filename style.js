@@ -164,6 +164,34 @@ function stadiumLabel(props) {
   return props.name || STADIUM_SPORT_LABELS[props.sport] || '';
 }
 
+// Memorials (data/memorials.geojson): monuments/sculptures vs wall plaques.
+// Plaques are both numerous (48 vs 19) and only interesting up close, so they
+// appear later and never get an always-on map label — only a marker + popup.
+const MEMORIAL_MONUMENT_MIN_ZOOM = 14;
+const MEMORIAL_PLAQUE_MIN_ZOOM = 17;
+const MEMORIAL_LABEL_MIN_ZOOM = 16;
+const MEMORIAL_LABEL_MAX_CHARS = 30;
+
+function isPlaque(props) {
+  return props.kind === 'plaque';
+}
+
+function memorialTypeLabel(props) {
+  return isPlaque(props) ? 'Мемориальная доска' : 'Памятник, скульптура';
+}
+
+// Map label: drop the leading "Памятник"/"Скульптура" (the marker already says
+// what it is) and cut the long dedication names down to something that fits.
+function memorialLabel(props) {
+  let name = (props.name || '').replace(/^(Памятник|Скульптура|Мемориал)\s+/i, '');
+  if (name.length > MEMORIAL_LABEL_MAX_CHARS) {
+    const cut = name.slice(0, MEMORIAL_LABEL_MAX_CHARS);
+    const space = cut.lastIndexOf(' ');
+    name = (space > 10 ? cut.slice(0, space) : cut) + '…';
+  }
+  return name;
+}
+
 const PARKING_STYLE = {
   fill: '#c9d6e3',
   border: '#8fa3ba',
