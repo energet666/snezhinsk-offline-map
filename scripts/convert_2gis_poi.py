@@ -20,6 +20,20 @@ DAY_MAP = [
 SOCIAL_DOMAINS = ('vk.com', 'ok.ru', 't.me', 'wa.me', 'instagram.', 'facebook.', 'telegram.')
 
 
+def clean_text(s):
+    """Убрать битый хвост из обрезанных значений.
+
+    В экспорте 2GIS длинные названия обрезаны по байтам, так что последний
+    символ приезжает недокодированным (U+FFFD). Выкидываем его и помечаем
+    обрыв многоточием — иначе ромб с вопросом виден в попапе и ломает
+    выгрузку в форматы, требующие валидного UTF-8.
+    """
+    if not s or '\ufffd' not in s:
+        return s
+    cleaned = s.replace('\ufffd', '').rstrip()
+    return cleaned + '…' if cleaned else ''
+
+
 def split_phones(phones):
     tel, web = [], []
     for p in phones:
@@ -85,7 +99,7 @@ def main():
         }
         features.append({
             'type': 'Feature',
-            'properties': props,
+            'properties': {k: clean_text(v) for k, v in props.items()},
             'geometry': {'type': 'Point', 'coordinates': [lon, lat]},
         })
 
