@@ -476,11 +476,35 @@ function buildLabelIndex(data, matchedPoiIds) {
     });
   }
 
+  // addr_nodes exist to label points OSM never attached to a building
+  // footprint. A node that falls *inside* an already-addressed building is
+  // usually a stale/imprecise per-entrance tag (see e.g. "Ломинского 1":
+  // two addr_nodes there say "1А" while the building itself — confirmed via
+  // 2GIS — is "1") rather than a genuinely separate sub-address, so it
+  // would just add a second, conflicting number on top of the same
+  // building. Skip those; only label addr_nodes that are actually outside
+  // any addressed building.
+  const addressedBuildingBoxes = data.buildings.features
+    .filter(f => f.properties.housenumber)
+    .map(f => {
+      const ring = f.geometry.coordinates[0];
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const [x, y] of ring) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+      return { ring, minX, minY, maxX, maxY };
+    });
   for (const f of data.addr_nodes.features) {
     if (!f.properties.housenumber) continue;
-    const c = f.geometry.coordinates;
+    const [x, y] = f.geometry.coordinates;
+    const insideAddressedBuilding = addressedBuildingBoxes.some(b =>
+      x >= b.minX && x <= b.maxX && y >= b.minY && y <= b.maxY && pointInRing(x, y, b.ring));
+    if (insideAddressedBuilding) continue;
     labelPoints.push({
-      latlng: L.latLng(c[1], c[0]),
+      latlng: L.latLng(y, x),
       text: f.properties.housenumber,
       minZoom: 17,
       kind: 'housenumber',
