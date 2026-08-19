@@ -429,6 +429,16 @@ function buildLabelIndex(data, matchedPoiIds, orgIndex) {
     });
   }
 
+  // Buildings that get a name/type caption below (Школа 122, Новый Снежинск, …)
+  // put it on the very same centroid as their house number, so the number ends
+  // up hidden underneath the name. Collect them here and shift the number down.
+  const namedBuildingIds = new Set();
+  for (const f of data.buildings.features) {
+    const p = f.properties;
+    const orgs = orgIndex.get(p.id) || [];
+    if (adminBuildingLabel(p) || orgs.some(o => adminBuildingLabel(o))) namedBuildingIds.add(p.id);
+  }
+
   // House number labels
   for (const f of data.buildings.features) {
     if (!f.properties.housenumber) continue;
@@ -438,6 +448,7 @@ function buildLabelIndex(data, matchedPoiIds, orgIndex) {
       text: f.properties.housenumber,
       minZoom: 17,
       kind: 'housenumber',
+      below: namedBuildingIds.has(f.properties.id),
     });
   }
 
@@ -665,7 +676,9 @@ function renderLabels() {
     if (!lp.text) continue;
     if (count >= MAX_LABELS_RENDERED) break;
     count++;
-    const className = 'map-label map-label-' + lp.kind + (lp.popupHtml ? ' map-label-clickable' : '');
+    const className = 'map-label map-label-' + lp.kind
+      + (lp.popupHtml ? ' map-label-clickable' : '')
+      + (lp.below ? ' map-label-below' : '');
     const icon = L.divIcon({ className, html: `<span class="label-inner">${escapeHtml(lp.text)}</span>`, iconSize: null });
     const marker = L.marker(lp.latlng, { icon, interactive: !!lp.popupHtml }).addTo(labelsGroup);
     if (lp.popupHtml) marker.bindPopup(lp.popupHtml);

@@ -97,6 +97,11 @@ html, body {
   padding: 0 3px;
   border-radius: 3px;
 }
+/* Both captions of a named building sit on its centroid — the house number
+   moves below the name instead of disappearing under it. */
+.map-label-housenumber.map-label-below .label-inner {
+  transform: translate(-50%, 14px);
+}
 .map-label-admin {
   font-weight: 600;
   font-size: 11px;
