@@ -249,6 +249,16 @@ function addStreetLabels(zoom, bounds, budget) {
 
 export function renderLabels() {
   labelsGroup.clearLayers();
+
+  // Nothing to draw when the overlay is off — and drawing anyway used to
+  // leave orphaned labels on the map. Leaflet nulls `layer._map` only *after*
+  // it fires `layerremove`, and this function runs as an `overlayremove`
+  // listener: at that moment labelsGroup still points at the map, so every
+  // marker added below went straight into the DOM and stayed there, with
+  // nothing left to remove it. Result: captions floating over pure satellite
+  // imagery, and a fresh set of them piling up on every base-layer switch.
+  if (!map.hasLayer(labelsGroup)) return;
+
   const zoom = map.getZoom();
   const bounds = map.getBounds();
   let count = 0;
