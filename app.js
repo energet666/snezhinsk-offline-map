@@ -863,10 +863,6 @@ Promise.all([
 
   mapLayerGroup.addTo(map);
   buildingsLayer.addTo(map);
-  labelsGroup.addTo(map);
-  memorialsGroup.addTo(map);
-  renderLabels();
-  syncMemorialZoom();
 
   const hybridLayer = L.layerGroup([satelliteLayerHybrid, hybridRoadsGroup]);
 
@@ -880,7 +876,38 @@ Promise.all([
     'Памятники': memorialsGroup,
     'Парковки': parkingLayer,
   };
+
+  // The overlay checkboxes are a user setting just like the base layer and the
+  // map view, so they survive a reload too. Missing/новые keys fall back to the
+  // defaults, so adding an overlay later doesn't need a storage migration.
+  const OVERLAY_DEFAULTS = { 'Названия и объекты': true, 'Памятники': true, 'Парковки': false };
+  const overlayPrefs = (() => {
+    try {
+      const v = JSON.parse(localStorage.getItem('mapOverlays'));
+      if (v && typeof v === 'object') return Object.assign({}, OVERLAY_DEFAULTS, v);
+    } catch (e) { /* malformed/absent — fall back to the defaults */ }
+    return Object.assign({}, OVERLAY_DEFAULTS);
+  })();
+
+  // Set to true around the programmatic toggles the satellite mode does on its
+  // own — those aren't the user's choice and must not overwrite the saved prefs.
+  let applyingOverlayPrefs = false;
+  function saveOverlayPrefs() {
+    if (applyingOverlayPrefs) return;
+    for (const [name, group] of Object.entries(overlays)) overlayPrefs[name] = map.hasLayer(group);
+    localStorage.setItem('mapOverlays', JSON.stringify(overlayPrefs));
+  }
+
+  // Applied before the layers control is created, so its checkboxes render
+  // already matching the restored state.
+  for (const [name, group] of Object.entries(overlays)) {
+    if (overlayPrefs[name]) map.addLayer(group);
+  }
+  renderLabels();
+  syncMemorialZoom();
+
   L.control.layers(baseLayers, overlays, { position: 'topright', collapsed: false }).addTo(map);
+  map.on('overlayadd overlayremove', saveOverlayPrefs);
 
   map.on('baselayerchange', (e) => {
     localStorage.setItem('mapMode', e.name);
@@ -892,10 +919,15 @@ Promise.all([
     // ("Парковки" is off by default, so it stays the user's own choice.)
     const pureSatellite = (e.layer === satelliteLayer);
     const hiddenInSatellite = { 'Названия и объекты': labelsGroup, 'Памятники': memorialsGroup };
-    for (const group of Object.values(hiddenInSatellite)) {
-      if (pureSatellite && map.hasLayer(group)) map.removeLayer(group);
-      else if (!pureSatellite && !map.hasLayer(group)) map.addLayer(group);
+    applyingOverlayPrefs = true;
+    for (const [name, group] of Object.entries(hiddenInSatellite)) {
+      // Leaving pure satellite restores what the user actually had checked,
+      // not a blanket "on" — otherwise switching modes would silently undo it.
+      const shouldShow = !pureSatellite && overlayPrefs[name];
+      if (shouldShow && !map.hasLayer(group)) map.addLayer(group);
+      else if (!shouldShow && map.hasLayer(group)) map.removeLayer(group);
     }
+    applyingOverlayPrefs = false;
 
     // Leaflet's layers control doesn't reliably resync its checkbox when a
     // layer is toggled outside of a click on that checkbox — fix it up so
