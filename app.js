@@ -489,6 +489,24 @@ function buildLabelIndex(data, matchedPoiIds) {
 
   // Note: organizations are intentionally not shown as always-on labels —
   // they surface via a click on their building (see buildMapLayer) or search.
+
+  dedupeHousenumberLabels();
+}
+
+// Housenumber labels come from two sources (building polygons and
+// standalone addr_nodes) that can both carry the same address — e.g. a
+// building split into several OSM ways all tagged with the same
+// addr:housenumber, or a building plus a nearby addr_node for one of its
+// entrances/units sharing the number. Collapse near-duplicates (same text,
+// within a few metres) into a single label instead of stacking copies.
+function dedupeHousenumberLabels() {
+  const kept = [];
+  for (const lp of labelPoints) {
+    if (lp.kind !== 'housenumber') { kept.push(lp); continue; }
+    const dup = kept.some(k => k.kind === 'housenumber' && k.text === lp.text && map.distance(k.latlng, lp.latlng) < 20);
+    if (!dup) kept.push(lp);
+  }
+  labelPoints = kept;
 }
 
 const MAX_LABELS_RENDERED = 400;
