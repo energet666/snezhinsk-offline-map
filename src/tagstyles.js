@@ -1,4 +1,6 @@
-// Styling rules mapping OSM tags to a Google-Maps-like look
+// Styling rules mapping OSM tags (and 2GIS categories) to a Google-Maps-like
+// look and to Russian labels. Pure lookup tables — no Leaflet, no DOM.
+import { MEMORIAL_LABEL_MAX_CHARS } from './config.js';
 
 const ROAD_STYLES = {
   motorway:      { color: '#f0a95e', weight: 7, casing: '#d98a3d' },
@@ -19,7 +21,7 @@ const ROAD_STYLES = {
 };
 const ROAD_DEFAULT = { color: '#ffffff', weight: 2, casing: '#d0d0d0' };
 
-function roadStyle(feature) {
+export function roadStyle(feature) {
   const hw = feature.properties.highway;
   const s = ROAD_STYLES[hw] || ROAD_DEFAULT;
   return s;
@@ -66,31 +68,29 @@ const LANDUSE_COLORS = {
 // building outline dissolving into the ground.
 const LANDUSE_DEFAULT = '#eef0ef';
 
-function landuseColor(feature) {
+export function landuseColor(feature) {
   const lu = feature.properties.landuse;
   return LANDUSE_COLORS[lu] || LANDUSE_DEFAULT;
 }
 
-const POI_CATEGORY_COLORS = {
-  amenity: '#e55e5e',
-  shop: '#4f8ff0',
-  office: '#8a5fc9',
-};
-
-function poiColor(props) {
-  if (props.amenity) return POI_CATEGORY_COLORS.amenity;
-  if (props.shop) return POI_CATEGORY_COLORS.shop;
-  if (props.office) return POI_CATEGORY_COLORS.office;
-  return '#999999';
+// The OSM-shaped tags that say what kind of place a POI is, in priority
+// order. Used both for its label and to tell an actual place apart from a
+// stray untagged node.
+function poiKindTag(props) {
+  return props.amenity || props.shop || props.office ||
+    props.healthcare || props.craft || props.tourism || props.leisure || '';
 }
 
-function poiLabel(props) {
+export function hasPoiIdentity(props) {
+  return !!(props.name || poiKindTag(props));
+}
+
+export function poiLabel(props) {
   // `category` (2GIS, already human-readable Russian) takes priority;
   // the amenity/shop/... fallback is only for any leftover OSM-shaped data.
   if (props.category) return props.category;
   if (props.amenity === 'atm') return 'банкомат';
-  return props.amenity || props.shop || props.office ||
-    props.healthcare || props.craft || props.tourism || props.leisure || '';
+  return poiKindTag(props);
 }
 
 // ATMs in OSM rarely carry a name — the bank is only recoverable from the
@@ -102,7 +102,7 @@ const BANK_BY_DOMAIN = {
   'vtb.ru': 'ВТБ',
 };
 
-function bankFromWebsite(website) {
+export function bankFromWebsite(website) {
   if (!website) return '';
   for (const domain in BANK_BY_DOMAIN) {
     if (website.includes(domain)) return BANK_BY_DOMAIN[domain];
@@ -146,7 +146,7 @@ const ADMIN_CATEGORY_LABELS = {
   'Детские сады': 'Детский сад',
 };
 
-function adminBuildingLabel(props) {
+export function adminBuildingLabel(props) {
   return ADMIN_BUILDING_LABELS[props.amenity] || ADMIN_BUILDING_LABELS[props.building] ||
     ADMIN_CATEGORY_LABELS[props.category] || '';
 }
@@ -159,30 +159,28 @@ const STADIUM_SPORT_LABELS = {
   soccer: 'Стадион',
 };
 
-function stadiumLabel(props) {
+export function stadiumLabel(props) {
   if (props.landuse !== 'leisure_stadium') return '';
   return props.name || STADIUM_SPORT_LABELS[props.sport] || '';
 }
 
-// Memorials (data/memorials.geojson): monuments/sculptures vs wall plaques.
-// Plaques are both numerous (48 vs 19) and only interesting up close, so they
-// appear later and never get an always-on map label — only a marker + popup.
-const MEMORIAL_MONUMENT_MIN_ZOOM = 14;
-const MEMORIAL_PLAQUE_MIN_ZOOM = 17;
-const MEMORIAL_LABEL_MIN_ZOOM = 16;
-const MEMORIAL_LABEL_MAX_CHARS = 30;
+export function isGarage(feature) {
+  const b = feature && feature.properties.building;
+  return b === 'garage' || b === 'garages';
+}
 
-function isPlaque(props) {
+// Memorials (data/memorials.geojson): monuments/sculptures vs wall plaques.
+export function isPlaque(props) {
   return props.kind === 'plaque';
 }
 
-function memorialTypeLabel(props) {
+export function memorialTypeLabel(props) {
   return isPlaque(props) ? 'Мемориальная доска' : 'Памятник, скульптура';
 }
 
 // Map label: drop the leading "Памятник"/"Скульптура" (the marker already says
 // what it is) and cut the long dedication names down to something that fits.
-function memorialLabel(props) {
+export function memorialLabel(props) {
   let name = (props.name || '').replace(/^(Памятник|Скульптура|Мемориал)\s+/i, '');
   if (name.length > MEMORIAL_LABEL_MAX_CHARS) {
     const cut = name.slice(0, MEMORIAL_LABEL_MAX_CHARS);
@@ -192,7 +190,17 @@ function memorialLabel(props) {
   return name;
 }
 
-const PARKING_STYLE = {
+export const BUILDING_STYLE = {
+  normal: { color: '#c4b9a8', weight: 1, fillColor: '#d9d0c4', fillOpacity: 0.95 },
+  garage: { color: '#a99bb8', weight: 1, fillColor: '#d6cddb', fillOpacity: 0.95 },
+  // Satellite/hybrid: invisible, but still there to catch popup clicks.
+  hidden: { stroke: false, fill: true, fillOpacity: 0 },
+};
+
+export const WATER_STYLE = { color: '#a3ccdb', weight: 1, fillColor: '#aad3df', fillOpacity: 1 };
+export const RAILWAY_STYLE = { color: '#8a8a8a', weight: 2, dashArray: '1,6' };
+
+export const PARKING_STYLE = {
   fill: '#c9d6e3',
   border: '#8fa3ba',
   markerBg: '#2f6fb0',
