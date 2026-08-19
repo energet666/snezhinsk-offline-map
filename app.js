@@ -413,7 +413,7 @@ function polygonCentroid(coords) {
   return L.latLng(y, x);
 }
 
-function buildLabelIndex(data, matchedPoiIds) {
+function buildLabelIndex(data, matchedPoiIds, orgIndex) {
   labelPoints = [];
   namedStreets = [];
 
@@ -442,14 +442,20 @@ function buildLabelIndex(data, matchedPoiIds) {
   }
 
   // Admin/social building labels (schools, kindergartens, clinics, …).
-  // Most carry no `name` in OSM, so fall back to a generic type label.
+  // Most carry no `name` in OSM, so fall back to a generic type label. Some
+  // buildings carry no admin tag at all (e.g. школа 135's OSM relation is
+  // only tagged building=yes+addr, not amenity=school) — for those, fall
+  // back to the category of whatever 2GIS organization is matched inside.
   for (const f of data.buildings.features) {
     const p = f.properties;
-    const generic = adminBuildingLabel(p);
+    const orgs = orgIndex.get(p.id) || [];
+    const matchedOrgLabel = orgs.map(o => adminBuildingLabel(o)).find(Boolean);
+    const generic = adminBuildingLabel(p) || matchedOrgLabel;
     if (!generic) continue;
+    const orgName = orgs.find(o => adminBuildingLabel(o))?.name;
     labelPoints.push({
       latlng: polygonCentroid(f.geometry.coordinates),
-      text: p.name || generic,
+      text: p.name || orgName || generic,
       minZoom: ADMIN_LABEL_MIN_ZOOM,
       kind: 'admin',
     });
@@ -850,7 +856,7 @@ Promise.all([
   dataStore = data;
   const { orgIndex, matchedPoiIds } = buildOrgIndex(data);
   const { buildings: buildingsLayer, hybridRoadsGroup } = buildMapLayer(data, orgIndex);
-  buildLabelIndex(data, matchedPoiIds);
+  buildLabelIndex(data, matchedPoiIds, orgIndex);
   buildSearchIndex(data);
   const parkingLayer = buildParkingLayer(data);
   buildMemorialsLayer(data);
