@@ -127,6 +127,34 @@ function buildOrgIndex(data) {
   return { orgIndex, matchedPoiIds };
 }
 
+// Phone/hours/website block shared by the building-popup org list and the
+// standalone-POI popup (see standalonePoiPopupHtml).
+function orgDetailsHtml(o) {
+  let details = '';
+  if (o.phone) details += `<div class="org-detail">☎ ${escapeHtml(o.phone)}</div>`;
+  if (o.opening_hours) {
+    const days = o.opening_hours.split('; ').map(d => `<div>${escapeHtml(d)}</div>`).join('');
+    details += `<div class="org-detail org-hours">🕑<div class="org-hours-days">${days}</div></div>`;
+  }
+  if (o.website) details += `<div class="org-detail"><a href="${escapeHtml(o.website)}" target="_blank" rel="noopener">${escapeHtml(o.website)}</a></div>`;
+  return details;
+}
+
+// Popup for a POI with no enclosing building (e.g. школа 135) — there's no
+// polygon to click for details, so the label itself carries the popup.
+// Only one organization here, so no need for the building popup's
+// click-to-expand list — just show everything.
+function standalonePoiPopupHtml(p) {
+  const addr = [p.street, p.housenumber].filter(Boolean).join(', ');
+  let html = '';
+  if (p.name) html += `<b>${escapeHtml(p.name)}</b><br>`;
+  if (addr) html += `${escapeHtml(addr)}<br>`;
+  const cat = poiLabel(p);
+  if (cat) html += `<span class="org-cat">${escapeHtml(cat)}</span>`;
+  html += orgDetailsHtml(p);
+  return html;
+}
+
 function buildMapLayer(data, orgIndex) {
   // Landuse
   const landuse = L.geoJSON(data.landuse, {
@@ -207,13 +235,7 @@ function buildMapLayer(data, orgIndex) {
           const bank = o.amenity === 'atm' ? bankFromWebsite(o.website) : '';
           const title = o.name || cat || 'организация';
           const subtitle = o.name ? cat : bank;
-          let details = '';
-          if (o.phone) details += `<div class="org-detail">☎ ${escapeHtml(o.phone)}</div>`;
-          if (o.opening_hours) {
-            const days = o.opening_hours.split('; ').map(d => `<div>${escapeHtml(d)}</div>`).join('');
-            details += `<div class="org-detail org-hours">🕑<div class="org-hours-days">${days}</div></div>`;
-          }
-          if (o.website) details += `<div class="org-detail"><a href="${escapeHtml(o.website)}" target="_blank" rel="noopener">${escapeHtml(o.website)}</a></div>`;
+          const details = orgDetailsHtml(o);
           const clickable = details ? ' org-item-clickable' : '';
           return `<div class="org-item${clickable}">` +
             `<div class="org-name"><b>${escapeHtml(title)}</b>` +
@@ -436,6 +458,10 @@ function buildLabelIndex(data, matchedPoiIds) {
   // Same admin labeling for standalone POIs (e.g. школа 135, tagged as a
   // point with no enclosing building at all in OSM) — skip ones already
   // surfaced via a building popup (buildOrgIndex) to avoid double-labeling.
+  // Unlike building-derived admin labels (whose phone/hours/website is one
+  // click away on the building polygon itself), these have no polygon to
+  // click at all — bind a popup directly on the label so that info isn't
+  // simply unreachable.
   for (const f of data.poi.features) {
     const p = f.properties;
     if (matchedPoiIds.has(p.id)) continue;
@@ -447,6 +473,7 @@ function buildLabelIndex(data, matchedPoiIds) {
       text: p.name || generic,
       minZoom: ADMIN_LABEL_MIN_ZOOM,
       kind: 'admin',
+      popupHtml: standalonePoiPopupHtml(p),
     });
   }
 
@@ -632,9 +659,10 @@ function renderLabels() {
     if (!lp.text) continue;
     if (count >= MAX_LABELS_RENDERED) break;
     count++;
-    const className = 'map-label map-label-' + lp.kind;
+    const className = 'map-label map-label-' + lp.kind + (lp.popupHtml ? ' map-label-clickable' : '');
     const icon = L.divIcon({ className, html: `<span class="label-inner">${escapeHtml(lp.text)}</span>`, iconSize: null });
-    L.marker(lp.latlng, { icon, interactive: false }).addTo(labelsGroup);
+    const marker = L.marker(lp.latlng, { icon, interactive: !!lp.popupHtml }).addTo(labelsGroup);
+    if (lp.popupHtml) marker.bindPopup(lp.popupHtml);
   }
 }
 
