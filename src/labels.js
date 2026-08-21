@@ -8,6 +8,7 @@
 import {
   ADMIN_LABEL_MIN_ZOOM, HOUSENUMBER_DEDUPE_METERS, HOUSENUMBER_LABEL_MIN_ZOOM,
   MAX_LABELS_RENDERED, MEMORIAL_LABEL_MIN_ZOOM,
+  PLACE_LABEL_MAX_ZOOM, PLACE_LABEL_MIN_ZOOM,
   STREET_LABEL_MIN_LEN_PX, STREET_LABEL_MIN_ZOOM, STREET_LABEL_STEP_PX,
 } from './config.js';
 import { buildingRingIndex, entryContains, polygonCentroid } from './geo.js';
@@ -18,7 +19,7 @@ import { adminBuildingLabel, isPlaque, memorialLabel, stadiumLabel } from './tag
 
 export const labelsGroup = L.layerGroup();
 
-let labelPoints = []; // {latlng, text, minZoom, kind, below?, popupHtml?}
+let labelPoints = []; // {latlng, text, minZoom, maxZoom?, kind, below?, popupHtml?}
 let namedStreets = []; // {name, latlngs, bounds} - rendered along the road itself
 
 // ---------- Index ----------
@@ -26,6 +27,21 @@ let namedStreets = []; // {name, latlngs, bounds} - rendered along the road itse
 export function buildLabelIndex(data, matchedPoiIds, orgIndex) {
   labelPoints = [];
   namedStreets = [];
+
+  // Settlement names (the town itself and the neighbouring villages —
+  // Воздвиженка, Воскресенское, Ближний Береговой, Знаменка). Unlike every
+  // other label these are meant to be read while zoomed *out*, so they are
+  // the only kind with an upper zoom bound as well.
+  for (const f of data.places.features) {
+    const c = f.geometry.coordinates;
+    labelPoints.push({
+      latlng: L.latLng(c[1], c[0]),
+      text: f.properties.name,
+      minZoom: PLACE_LABEL_MIN_ZOOM,
+      maxZoom: PLACE_LABEL_MAX_ZOOM,
+      kind: 'place',
+    });
+  }
 
   // Street name labels — stored as full geometry so they can be drawn
   // rotated along the road and repeated along long streets.
@@ -275,6 +291,7 @@ export function renderLabels() {
   for (const lp of labelPoints) {
     if (lp.kind === 'memorial' && !showMemorials) continue;
     if (zoom < lp.minZoom) continue;
+    if (lp.maxZoom !== undefined && zoom > lp.maxZoom) continue;
     if (!bounds.contains(lp.latlng)) continue;
     if (!lp.text) continue;
     if (count >= MAX_LABELS_RENDERED) break;

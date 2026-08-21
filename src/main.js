@@ -15,7 +15,7 @@ import { getOverlayPrefs, getSavedMode, saveMode, saveOverlayPrefs } from './sto
 // `data` under exactly these keys.
 const DATA_LAYERS = [
   'roads', 'buildings', 'poi', 'landuse', 'water',
-  'railway', 'addr_nodes', 'parking', 'memorials',
+  'railway', 'addr_nodes', 'parking', 'memorials', 'places',
 ];
 
 function fetchJSON(path) {

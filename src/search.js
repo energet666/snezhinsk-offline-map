@@ -8,8 +8,20 @@ import { memorialTypeLabel, poiLabel } from './tagstyles.js';
 
 let searchIndex = []; // {label, sub, latlng, zoom}
 
+const PLACE_KIND_LABELS = { city: 'Город', town: 'Город', village: 'Село', hamlet: 'Деревня' };
+
 export function buildSearchIndex(data) {
   searchIndex = [];
+  for (const f of data.places.features) {
+    const p = f.properties;
+    const c = f.geometry.coordinates;
+    searchIndex.push({
+      label: p.name,
+      sub: PLACE_KIND_LABELS[p.place] || 'Населённый пункт',
+      latlng: L.latLng(c[1], c[0]),
+      zoom: 15,
+    });
+  }
   const seenStreets = new Set();
   for (const f of data.roads.features) {
     const name = f.properties.name;

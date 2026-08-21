@@ -112,6 +112,15 @@ html, body {
   padding: 1px 4px;
   border-radius: 3px;
 }
+/* Settlement names: read from far out, so they are the largest label on the
+   map and spaced out enough that letter-spacing stays legible. */
+.map-label-place {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: #333;
+}
+
 /* Sits under its own marker (translate(-50%,-50%) puts it on the marker's
    center, the extra 16px pushes the text clear of the 18px star icon). */
 .map-label-memorial {

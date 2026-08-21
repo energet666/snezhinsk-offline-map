@@ -32,6 +32,14 @@ export const STREET_LABEL_MIN_LEN_PX = 40; // skip streets too short to fit a la
 // address coming from two sources (see dedupeHousenumberLabels).
 export const HOUSENUMBER_DEDUPE_METERS = 20;
 
+// ---------- Settlements ----------
+// Names of the neighbouring villages (Воздвиженка, Воскресенское, …). They
+// are the only thing worth reading when the whole area is on screen, and by
+// the time street names appear (STREET_LABEL_MIN_ZOOM) the village caption
+// sitting on its centre has stopped being useful and only covers houses.
+export const PLACE_LABEL_MIN_ZOOM = 11;
+export const PLACE_LABEL_MAX_ZOOM = 15;
+
 // ---------- Memorials ----------
 // Plaques are both numerous (48 vs 19) and only interesting up close, so they
 // appear later and never get an always-on map label — only a marker + popup.
